@@ -23,11 +23,17 @@ public class Pawn : MonoBehaviour {
         SnapToPlanet();
 	}
 
+    public void SetTargetPos(Vector3 target) {
+        targetPosition = target;
+    }
+
     private void SnapToPlanet() {
         Vector3 toSurface = planet.toSurface(transform.position);
         transform.position += toSurface.normalized * (toSurface.magnitude - height);
         Vector3 newForward = Vector3.ProjectOnPlane(transform.forward, -toSurface);
         transform.rotation = Quaternion.LookRotation(newForward, -toSurface);
-        rb.velocity = transform.forward * speed;
+        if (targetPosition != Vector3.zero) {
+            rb.velocity = Vector3.ProjectOnPlane(targetPosition - transform.position, -toSurface) * speed;
+        }
     }
 }

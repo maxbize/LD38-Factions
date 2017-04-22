@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class Planet : MonoBehaviour {
 
+    private LayerMask planetMask;
+
 	// Use this for initialization
 	void Start () {
-	
+        planetMask = LayerMask.NameToLayer("Planet");
     }
 	
 	// Update is called once per frame
@@ -14,6 +16,7 @@ public class Planet : MonoBehaviour {
 		
 	}
 
+    // TODO: Ignore all non-planet layers
     public Vector3 toSurface(Vector3 source) {
         RaycastHit hit;
         Vector3 toPlanet = (transform.position - source).normalized;
