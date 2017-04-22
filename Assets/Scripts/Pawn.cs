@@ -8,7 +8,8 @@ public class Pawn : MonoBehaviour {
     public float height; // Float distance above planet
     public float moveSpeed;
     public float attackSpeed;
-    public float attackRange;
+    public float attackRange; // Range we need to be at to physically attack
+    public float trackingRange; // Range at which we'll autoattack any enemies
     public int health;
     public int damage;
 
@@ -51,7 +52,7 @@ public class Pawn : MonoBehaviour {
     private void HandleAttacking() {
         // Pick a target
         targetOpponent = null;
-        foreach (Collider col in Physics.OverlapSphere(transform.position, attackRange)) {
+        foreach (Collider col in Physics.OverlapSphere(transform.position, trackingRange)) {
             Pawn pawn = col.GetComponent<Pawn>();
             if (pawn != null && pawn.owner != owner) {
                 targetOpponent = pawn;
@@ -61,7 +62,10 @@ public class Pawn : MonoBehaviour {
 
         // Do the attack
         attackTimer += Time.deltaTime;
-        if (attackTimer > attackSpeed && targetOpponent != null) {
+        if (attackTimer > attackSpeed && 
+            targetOpponent != null && 
+            Vector3.Distance(targetOpponent.transform.position, transform.position) < attackRange) {
+
             targetOpponent.TakeDamage(damage);
             attackTimer = 0;
         }
