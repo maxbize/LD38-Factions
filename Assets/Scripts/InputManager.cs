@@ -5,6 +5,9 @@ using UnityEngine;
 // Takes care of selecting units and passing out orders
 public class InputManager : MonoBehaviour {
 
+    // Set in editor
+    public PlayerNum player;
+
     private const int LEFT_CLICK = 0;
 
     private HashSet<Pawn> selectedPawns = new HashSet<Pawn>();
@@ -29,8 +32,10 @@ public class InputManager : MonoBehaviour {
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit)) {
                 foreach (Pawn pawn in selectedPawns) {
-                    pawn.SetTargetPos(hit.point);
-                    pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
+                    if (pawn != null) {
+                        pawn.SetTargetPos(hit.point);
+                        pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
+                    }
                 }
                 selectedPawns.Clear();
                 startPoint = Vector2.zero;
@@ -59,12 +64,11 @@ public class InputManager : MonoBehaviour {
         
         foreach (Collider col in Physics.OverlapBox(boxCenter, boxExtents, boxRot)) {
             Pawn pawn = col.GetComponent<Pawn>();
-            if (pawn == null) {
+            if (pawn == null || pawn.owner != player) {
                 continue;
             }
             selectedPawns.Add(pawn);
             pawn.GetComponent<Renderer>().material.color = Color.magenta; // Temp hack? :)
-            // TODO: Filter out enemy pawns
         }
     }
 

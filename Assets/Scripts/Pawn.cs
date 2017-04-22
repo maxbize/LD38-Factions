@@ -56,7 +56,7 @@ public class Pawn : MonoBehaviour {
         // Pick a target
         targetOpponent = null; // Weakest opponent in tracking range
         Pawn attackOpponent = null; // Weakest opponent in attacking range
-        foreach (Collider col in Physics.OverlapSphere(transform.position, trackingRange)) {
+        foreach (Collider col in Physics.OverlapSphere(targetPosition, trackingRange)) { // Only seek opponents that are within range of our target position
             Pawn pawn = col.GetComponent<Pawn>();
             if (pawn != null && pawn.owner != owner && (targetOpponent == null || targetOpponent.healthRemaining > pawn.healthRemaining)) {
                 targetOpponent = pawn;

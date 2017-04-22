@@ -98,6 +98,7 @@ public class Base : MonoBehaviour {
             if (spawningTime > spawnTime) {
                 Pawn pawn = Instantiate(pawnPrefab, transform.position, Quaternion.identity).GetComponent<Pawn>();
                 pawn.Init(owningPlayer);
+                pawn.SetTargetPos(transform.position);
                 spawningTime = 0;
             }
         }
