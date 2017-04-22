@@ -10,26 +10,30 @@ public class Pawn : MonoBehaviour {
     public float attackSpeed;
     public float attackRange; // Range we need to be at to physically attack
     public float trackingRange; // Range at which we'll autoattack any enemies
-    public int health;
+    public int startingHealth;
     public int damage;
 
-    public PlayerNum owner ;//{ get; private set; }
+    public PlayerNum owner { get; private set; }
     private Planet planet;
     private Rigidbody rb;
     private Vector3 targetPosition;
     private Pawn targetOpponent;
     private float attackTimer;
+    public int healthRemaining { get; private set; }
 
 	// Use this for initialization
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
+        healthRemaining = startingHealth;
     }
 
 	// Update is called once per frame
 	void Update () {
         HandleAttacking();
         SnapToPlanet();
+
+        Debug.DrawRay(transform.position + transform.up * 1.2f + transform.right, -transform.right * 2 * ((float)healthRemaining / startingHealth), PlayerMethods.GetPlayerColor(owner));
 	}
 
     public void Init(PlayerNum owner) {
@@ -42,30 +46,30 @@ public class Pawn : MonoBehaviour {
     }
 
     public void TakeDamage(int amount) {
-        health -= amount;
-        if (health < 0) {
+        healthRemaining -= amount;
+        if (healthRemaining < 0) {
             Destroy(gameObject);
         }
     }
 
     private void HandleAttacking() {
         // Pick a target
-        targetOpponent = null;
+        targetOpponent = null; // Weakest opponent in tracking range
+        Pawn attackOpponent = null; // Weakest opponent in attacking range
         foreach (Collider col in Physics.OverlapSphere(transform.position, trackingRange)) {
             Pawn pawn = col.GetComponent<Pawn>();
-            if (pawn != null && pawn.owner != owner) {
+            if (pawn != null && pawn.owner != owner && (targetOpponent == null || targetOpponent.healthRemaining > pawn.healthRemaining)) {
                 targetOpponent = pawn;
-                break;
+                if (Vector3.Distance(targetOpponent.transform.position, transform.position) < attackRange) {
+                    attackOpponent = targetOpponent;
+                }
             }
         }
 
         // Do the attack
         attackTimer += Time.deltaTime;
-        if (attackTimer > attackSpeed && 
-            targetOpponent != null && 
-            Vector3.Distance(targetOpponent.transform.position, transform.position) < attackRange) {
-
-            targetOpponent.TakeDamage(damage);
+        if (attackTimer > attackSpeed && attackOpponent != null) {
+            attackOpponent.TakeDamage(damage);
             attackTimer = 0;
         }
     }
