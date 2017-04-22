@@ -28,20 +28,26 @@ public class InputManager : MonoBehaviour {
                 SelectUnits(startPoint, Input.mousePosition);
             }
         } else if (Input.GetMouseButtonDown(LEFT_CLICK)) {
+            Vector3 targetPosition;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit)) {
-                foreach (Pawn pawn in selectedPawns) {
-                    if (pawn != null) {
-                        pawn.SetTargetPos(hit.point);
-                        pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
-                    }
-                }
-                selectedPawns.Clear();
-                startPoint = Vector2.zero;
+                targetPosition = hit.point;
+            } else {
+                targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition + Vector3.forward * Vector3.Distance(transform.position, planet.transform.position));
+                targetPosition += planet.toSurface(targetPosition);
             }
+            foreach (Pawn pawn in selectedPawns) {
+                if (pawn != null) {
+                    pawn.SetTargetPos(targetPosition);
+                    pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
+                }
+            }
+            selectedPawns.Clear();
+            startPoint = Vector2.zero;
         }
 	}
+
 
     // Could be cleaned up by using a OverlapBox instead of converting everything to screen space and then filtering out unwanted results
     private void SelectUnits(Vector2 cornerOne, Vector2 cornerTwo) {
