@@ -11,17 +11,20 @@ public class Base : MonoBehaviour {
     public float captureTime;
     public float spawnTime;
     public GameObject pawnPrefab;
+    public PlayerNum owningPlayer;
 
     private Planet planet;
-    private PlayerNum owningPlayer;
-    private PlayerNum capturingPlayer;
+    public PlayerNum capturingPlayer { get; private set; }
     private float capturingTime;
     private float spawningTime;
+    public Dictionary<PlayerNum, HashSet<Pawn>> pawnsInRange { get; private set; }
 
 	// Use this for initialization
 	void Start () {
         planet = FindObjectOfType<Planet>();
         SnapToPlanet();
+        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+        pawnsInRange = new Dictionary<PlayerNum, HashSet<Pawn>>();
     }
 	
 	// Update is called once per frame
@@ -34,7 +37,7 @@ public class Base : MonoBehaviour {
         Collider[] allPawns = Physics.OverlapSphere(transform.position, captureRange);
 
         // Partition the pawns by owner
-        Dictionary<PlayerNum, HashSet<Pawn>> pawnsInRange = new Dictionary<PlayerNum, HashSet<Pawn>>();
+        pawnsInRange.Clear();
         foreach (Collider coll in allPawns) {
             Pawn pawn = coll.GetComponent<Pawn>();
             if (pawn == null) {
@@ -63,7 +66,9 @@ public class Base : MonoBehaviour {
             } else if (onlyPlayerInRange != owningPlayer && capturingTime <= 0) { // Player is beginning to capture the point
                 capturingTime = Time.deltaTime;
                 capturingPlayer = onlyPlayerInRange;
-                Debug.Log(capturingPlayer + " started capturing the point");
+                Debug.Log(capturingPlayer + " started capturing point " + gameObject);
+            } else if (capturingPlayer != PlayerNum.Null) { // Capturing player is losing their progress
+                capturingTime -= Time.deltaTime;
             }
         } else { // Multiple players at the point - make sure the capturing player is one of them or they'll lose their capture progress
             if (!pawnsInRange.ContainsKey(capturingPlayer)) {
@@ -75,12 +80,16 @@ public class Base : MonoBehaviour {
             capturingTime = 0;
             capturingPlayer = PlayerNum.Null;
         } else if (capturingTime > captureTime) {
-            Debug.Log("Base stolen from " + owningPlayer + " by " + capturingPlayer);
+            Debug.Log("Base " + gameObject + " stolen from " + owningPlayer + " by " + capturingPlayer);
             owningPlayer = capturingPlayer;
             capturingPlayer = PlayerNum.Null;
+            GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
             capturingTime = 0;
             spawningTime = 0;
         }
+
+        Debug.DrawRay(transform.position - transform.forward * height, -transform.forward * (capturingTime / captureTime) * 3, PlayerMethods.GetPlayerColor(capturingPlayer));
+        Debug.DrawRay(transform.position - transform.forward * height + transform.up * 0.1f, -transform.forward * 3, Color.black);
     }
 
     private void HandleSpawning() {

@@ -30,7 +30,7 @@ public class InputManager : MonoBehaviour {
             if (Physics.Raycast(ray, out hit)) {
                 foreach (Pawn pawn in selectedPawns) {
                     pawn.SetTargetPos(hit.point);
-                    pawn.GetComponent<Renderer>().material.color = Color.red;
+                    pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
                 }
                 selectedPawns.Clear();
                 startPoint = Vector2.zero;

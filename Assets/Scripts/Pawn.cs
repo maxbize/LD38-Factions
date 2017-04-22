@@ -24,8 +24,6 @@ public class Pawn : MonoBehaviour {
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
-
-        Init(PlayerNum.One); // TEMP!!
     }
 
 	// Update is called once per frame
@@ -36,6 +34,7 @@ public class Pawn : MonoBehaviour {
 
     public void Init(PlayerNum owner) {
         this.owner = owner;
+        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owner);
     }
 
     public void SetTargetPos(Vector3 target) {
