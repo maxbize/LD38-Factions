@@ -69,7 +69,8 @@ public class AI : MonoBehaviour {
     private void ChooseTargets() {
         idealTargets.Clear();
 
-        foreach (Base bas in freeBases) {
+        // Should I just use the same logic for all base types and just change the priority based on the owner??
+        foreach (Base bas in allBases) {
             int numFriendlies = bas.pawnsInRange.ContainsKey(playerNumber) ? bas.pawnsInRange[playerNumber].Count : 0;
             int numEnemies = 0;
             foreach (PlayerNum num in Enum.GetValues(typeof(PlayerNum))) {
@@ -78,20 +79,36 @@ public class AI : MonoBehaviour {
                 }
             }
 
-            // Free base with no enemies - top priority!
-            if (numEnemies == 0) {
-                idealTargets.Insert(0, new KeyValuePair<Base, int>(bas, 1));
-            } else { 
-                // Prioritize according to the lowest amount of units we think we'll need to send
-                // TODO: Do we want to prioritize bases where we already have units?
-                int insertionIndex = 0;
-                int numToSend = numEnemies + 1;
-                while (insertionIndex < idealTargets.Count && idealTargets[insertionIndex].Value < numToSend) {
+            if (bas.owningPlayer == playerNumber && numEnemies == 0) {
+                continue; // No point sending people to defend a base that's not under attack
+            }
+
+            // Prioritize according to the lowest amount of units we think we'll need to send
+            // TODO: Do we want to prioritize bases where we already have units?
+            // TODO: Do we want to prioritize bases that are closer to existing bases?
+            int insertionIndex = 0;
+            int numToSend = numEnemies + 1;
+
+            while (insertionIndex < idealTargets.Count &&
+                BasePriority(idealTargets[insertionIndex].Key) < BasePriority(bas)) {
                     insertionIndex++;
-                }
-                idealTargets.Insert(insertionIndex, new KeyValuePair<Base, int>(bas, numToSend));
+            }
+            while (insertionIndex < idealTargets.Count &&
+                idealTargets[insertionIndex].Value < numToSend) {
+                    insertionIndex++;
             }
             
+            idealTargets.Insert(insertionIndex, new KeyValuePair<Base, int>(bas, numToSend));
+        }
+    }
+
+    private int BasePriority(Base bas) {
+        if (bas.owningPlayer == PlayerNum.Null) {
+            return 0;
+        } else if (bas.owningPlayer == playerNumber) {
+            return 1;
+        } else {
+            return 2;
         }
     }
 
