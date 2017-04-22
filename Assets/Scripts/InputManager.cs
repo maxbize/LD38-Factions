@@ -40,25 +40,32 @@ public class InputManager : MonoBehaviour {
 
     // Could be cleaned up by using a OverlapBox instead of converting everything to screen space and then filtering out unwanted results
     private void SelectUnits(Vector2 cornerOne, Vector2 cornerTwo) {
-        Pawn[] allPawns = FindObjectsOfType<Pawn>(); // TODO: Maintain this list somewhere
+        Vector3 toPlanet = planet.transform.position - transform.position;
+        Vector3 cornerOneV3 = Camera.main.ScreenToWorldPoint((Vector3)cornerOne + Vector3.forward * toPlanet.magnitude);
+        Vector3 cornerTwoV3 = Camera.main.ScreenToWorldPoint((Vector3)cornerTwo + Vector3.forward * toPlanet.magnitude);
+        Vector3 cornersCenter = (cornerOneV3 + cornerTwoV3) / 2;
+        Vector3 camToCornersCenter = cornersCenter - Camera.main.transform.position;
+        Vector3 boxCenter = transform.position + camToCornersCenter / 2;
 
-        Vector2 topLeft = new Vector2(Mathf.Min(cornerOne.x, cornerTwo.x), Mathf.Max(cornerOne.y, cornerTwo.y));
-        Vector2 botRight = new Vector2(Mathf.Max(cornerOne.x, cornerTwo.x), Mathf.Min(cornerOne.y, cornerTwo.y));
+        Debug.DrawLine(Vector3.zero, cornerOneV3, Color.black, 2);
+        Debug.DrawLine(Vector3.zero, cornerTwoV3, Color.black, 2);
 
-        foreach (Pawn pawn in allPawns) {
-            Vector2 pawnScreenPos = Camera.main.WorldToScreenPoint(pawn.transform.position);
-            if (pawnScreenPos.x > topLeft.x && 
-                pawnScreenPos.x < botRight.x && 
-                pawnScreenPos.y > botRight.y && 
-                pawnScreenPos.y < topLeft.y) {
-                
-                selectedPawns.Add(pawn);
-                pawn.GetComponent<Renderer>().material.color = Color.magenta; // Temp hack? :)
-                // TODO: Filter out enemy pawns, pawns on other side of planet
-                
+        Vector3 cornerToCorner = cornerOneV3 - cornerTwoV3;
+        float boxX = Mathf.Abs(Vector3.Dot(cornerToCorner, transform.right));
+        float boxY = Mathf.Abs(Vector3.Dot(cornerToCorner, transform.up));
+
+        Vector3 boxExtents = new Vector3(boxX, boxY, toPlanet.magnitude) / 2;
+        Quaternion boxRot = Quaternion.LookRotation(toPlanet, Camera.main.transform.up);
+        
+        foreach (Collider col in Physics.OverlapBox(boxCenter, boxExtents, boxRot)) {
+            Pawn pawn = col.GetComponent<Pawn>();
+            if (pawn == null) {
+                continue;
             }
+            selectedPawns.Add(pawn);
+            pawn.GetComponent<Renderer>().material.color = Color.magenta; // Temp hack? :)
+            // TODO: Filter out enemy pawns
         }
     }
-
 
 }
