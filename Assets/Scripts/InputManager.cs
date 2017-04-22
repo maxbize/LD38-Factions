@@ -38,7 +38,7 @@ public class InputManager : MonoBehaviour {
         }
 	}
 
-    // Could be cleaned up by using a boxcast instead of converting everything to screen space and then filtering out unwanted results
+    // Could be cleaned up by using a OverlapBox instead of converting everything to screen space and then filtering out unwanted results
     private void SelectUnits(Vector2 cornerOne, Vector2 cornerTwo) {
         Pawn[] allPawns = FindObjectsOfType<Pawn>(); // TODO: Maintain this list somewhere
 

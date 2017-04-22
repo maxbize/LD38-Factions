@@ -18,13 +18,17 @@ public class Pawn : MonoBehaviour {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
 
-        owner = PlayerNum.One; // TEMP!!
+        Init(PlayerNum.One); // TEMP!!
     }
-	
+
 	// Update is called once per frame
 	void Update () {
         SnapToPlanet();
 	}
+
+    public void Init(PlayerNum owner) {
+        this.owner = owner;
+    }
 
     public void SetTargetPos(Vector3 target) {
         targetPosition = target;

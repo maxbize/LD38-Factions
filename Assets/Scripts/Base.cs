@@ -9,11 +9,14 @@ public class Base : MonoBehaviour {
     public float height; // Above planet surface
     public float captureRange;
     public float captureTime;
+    public float spawnTime;
+    public GameObject pawnPrefab;
 
     private Planet planet;
     private PlayerNum owningPlayer;
     private PlayerNum capturingPlayer;
     private float capturingTime;
+    private float spawningTime;
 
 	// Use this for initialization
 	void Start () {
@@ -24,15 +27,19 @@ public class Base : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         HandleCapturing();
-        
+        HandleSpawning();
     }
 
     private void HandleCapturing() {
-        Pawn[] allPawns = FindObjectsOfType<Pawn>(); // TODO: Maintain this somewhere
+        Collider[] allPawns = Physics.OverlapSphere(transform.position, captureRange);
 
         // Partition the pawns by owner
         Dictionary<PlayerNum, HashSet<Pawn>> pawnsInRange = new Dictionary<PlayerNum, HashSet<Pawn>>();
-        foreach (Pawn pawn in allPawns) {
+        foreach (Collider coll in allPawns) {
+            Pawn pawn = coll.GetComponent<Pawn>();
+            if (pawn == null) {
+                continue;
+            }
             if (Vector3.Distance(pawn.transform.position, transform.position) > captureRange) {
                 continue;
             }
@@ -72,6 +79,18 @@ public class Base : MonoBehaviour {
             owningPlayer = capturingPlayer;
             capturingPlayer = PlayerNum.Null;
             capturingTime = 0;
+            spawningTime = 0;
+        }
+    }
+
+    private void HandleSpawning() {
+        if (owningPlayer != PlayerNum.Null) {
+            spawningTime += Time.deltaTime;
+            if (spawningTime > spawnTime) {
+                Pawn pawn = Instantiate(pawnPrefab, transform.position, Quaternion.identity).GetComponent<Pawn>();
+                pawn.Init(owningPlayer);
+                spawningTime = 0;
+            }
         }
     }
 
