@@ -8,6 +8,7 @@ public class Pawn : MonoBehaviour {
     public float height; // Float distance above planet
     public float speed;
 
+    public PlayerNum owner { get; private set; }
     private Planet planet;
     private Rigidbody rb;
     private Vector3 targetPosition;
@@ -16,6 +17,8 @@ public class Pawn : MonoBehaviour {
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
+
+        owner = PlayerNum.One; // TEMP!!
     }
 	
 	// Update is called once per frame

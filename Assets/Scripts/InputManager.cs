@@ -47,10 +47,15 @@ public class InputManager : MonoBehaviour {
 
         foreach (Pawn pawn in allPawns) {
             Vector2 pawnScreenPos = Camera.main.WorldToScreenPoint(pawn.transform.position);
-            if (pawnScreenPos.x > topLeft.x && pawnScreenPos.x < botRight.x && pawnScreenPos.y > botRight.y && pawnScreenPos.y < topLeft.y) {
+            if (pawnScreenPos.x > topLeft.x && 
+                pawnScreenPos.x < botRight.x && 
+                pawnScreenPos.y > botRight.y && 
+                pawnScreenPos.y < topLeft.y) {
+                
                 selectedPawns.Add(pawn);
                 pawn.GetComponent<Renderer>().material.color = Color.magenta; // Temp hack? :)
                 // TODO: Filter out enemy pawns, pawns on other side of planet
+                
             }
         }
     }
