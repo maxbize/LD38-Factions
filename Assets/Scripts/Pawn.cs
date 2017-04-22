@@ -10,6 +10,7 @@ public class Pawn : MonoBehaviour {
 
     private Planet planet;
     private Rigidbody rb;
+    private Vector3 targetPosition;
 
 	// Use this for initialization
 	void Start () {
@@ -23,15 +24,10 @@ public class Pawn : MonoBehaviour {
 	}
 
     private void SnapToPlanet() {
-        RaycastHit hit;
-        Vector3 toPlanet = (planet.transform.position - transform.position).normalized;
-        if (Physics.Raycast(transform.position, toPlanet, out hit)) {
-            if (hit.collider.GetComponent<Planet>() != null) {
-                transform.position += toPlanet * (hit.distance - height);
-                Vector3 newForward = Vector3.ProjectOnPlane(transform.forward, -toPlanet);
-                transform.rotation = Quaternion.LookRotation(newForward, -toPlanet);
-                rb.velocity = transform.forward * speed;
-            }
-        }
+        Vector3 toSurface = planet.toSurface(transform.position);
+        transform.position += toSurface.normalized * (toSurface.magnitude - height);
+        Vector3 newForward = Vector3.ProjectOnPlane(transform.forward, -toSurface);
+        transform.rotation = Quaternion.LookRotation(newForward, -toSurface);
+        rb.velocity = transform.forward * speed;
     }
 }
