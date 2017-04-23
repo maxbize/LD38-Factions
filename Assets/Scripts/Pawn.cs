@@ -18,8 +18,8 @@ public class Pawn : MonoBehaviour {
     public PlayerNum owner;// { get; private set; }
     private Planet planet;
     private Rigidbody rb;
-    private Vector3 targetPosition;
-    private Pawn trackingOpponent;
+    public Vector3 targetPosition; // debug - make private
+    public Pawn trackingOpponent; // Debug - make private
     private Pawn attackingOpponent;
     private float attackTimer;
     public int healthRemaining { get; private set; }
@@ -126,6 +126,8 @@ public class Pawn : MonoBehaviour {
             rb.velocity = Vector3.ProjectOnPlane(trackingOpponent.transform.position - transform.position, -toSurface) * moveSpeed;
         } else if (targetPosition != Vector3.zero) {
             rb.velocity = Vector3.ProjectOnPlane(targetPosition - transform.position, -toSurface) * moveSpeed;
+            Debug.DrawRay(transform.position, rb.velocity, Color.cyan);
+            Debug.DrawLine(transform.position, targetPosition, Color.black);
         }
     }
 }

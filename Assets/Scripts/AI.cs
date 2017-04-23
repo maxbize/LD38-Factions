@@ -17,8 +17,6 @@ public class AI : MonoBehaviour
     // Set in editor
     public PlayerNum playerNumber;
 
-    private Base[] allBases;
-
     // These are lists instead of sets so that we can put them in priority order
     private List<Base> myBases = new List<Base>();
     private List<Base> enemyBases = new List<Base>();
@@ -26,13 +24,14 @@ public class AI : MonoBehaviour
 
     private HashSet<Pawn> myPawns = new HashSet<Pawn>();
     private Dictionary<Pawn, Base> pawnTargets = new Dictionary<Pawn, Base>();
+    private GameManager gameManager;
 
     // In-order list of prioritized bases to target, with the ideal number of units per target
     private List<KeyValuePair<Base, int>> idealTargets = new List<KeyValuePair<Base, int>>();
 
     // Use this for initialization
     void Start() {
-        allBases = FindObjectsOfType<Base>();
+        gameManager = FindObjectOfType<GameManager>();
     }
 
     // Update is called once per frame
@@ -47,7 +46,7 @@ public class AI : MonoBehaviour
         myBases.Clear();
         freeBases.Clear();
         enemyBases.Clear();
-        foreach (Base b in allBases) {
+        foreach (Base b in gameManager.GetAllBases()) {
             if (b.owningPlayer == playerNumber) {
                 myBases.Add(b);
             } else if (b.owningPlayer == PlayerNum.Null) {
@@ -70,7 +69,10 @@ public class AI : MonoBehaviour
     private void ChooseTargets() {
         idealTargets.Clear();
 
-        foreach (Base bas in allBases) {
+        foreach (Base bas in gameManager.GetAllBases()) {
+            if (bas.pawnsInRange == null) {
+                return; // Base just got created. This won't get initialized until next frame during Start...
+            }
             int numFriendlies = bas.pawnsInRange.ContainsKey(playerNumber) ? bas.pawnsInRange[playerNumber].Count : 0;
             int numEnemies = 0;
             foreach (PlayerNum num in Enum.GetValues(typeof(PlayerNum))) {

@@ -17,6 +17,7 @@ public class InputManager : MonoBehaviour {
     private Planet planet;
     private Vector2 startPoint;
     private LayerMask pawnsAndPlanet;
+    private LayerMask planetMask;
     private GameManager gameManager;
 
 	// Use this for initialization
@@ -24,6 +25,7 @@ public class InputManager : MonoBehaviour {
         gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
         pawnsAndPlanet = (1 << LayerMask.NameToLayer("Pawn1")) | (1 << LayerMask.NameToLayer("Planet"));
+        planetMask = (1 << LayerMask.NameToLayer("Planet"));
     }
 	
 	// Update is called once per frame
@@ -42,7 +44,7 @@ public class InputManager : MonoBehaviour {
             Vector3 targetPosition;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            if (Physics.Raycast(ray, out hit)) {
+            if (Physics.Raycast(ray, out hit, planetMask)) {
                 targetPosition = hit.point;
             } else {
                 targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition + Vector3.forward * Vector3.Distance(transform.position, planet.transform.position));
