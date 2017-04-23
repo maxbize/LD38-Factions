@@ -106,7 +106,12 @@ public class AI : MonoBehaviour
         }
     }
 
-    // Simple way to get different AI behavior
+    /*
+     * Simple way to get different AI behavior
+     *  Blue = offense > defense > free
+     *  Green = free > offense > defense
+     *  Yellow = defense > free > offense
+     */
     private int BasePriority(Base bas) {
         if (bas.owningPlayer == PlayerNum.Null) {
             return ((int)playerNumber + 0) % 3;
