@@ -53,7 +53,8 @@ public class InputManager : MonoBehaviour {
                 }
             }
             selectedPawns.Clear();
-            Instantiate(markerPrefab, targetPosition, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, planet.transform.position - targetPosition), planet.transform.position - targetPosition));
+            Vector3 targetToPlanet = planet.transform.position - targetPosition;
+            Instantiate(markerPrefab, targetPosition - targetToPlanet * 0.05f, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, targetToPlanet), targetToPlanet));
         }
 	}
 

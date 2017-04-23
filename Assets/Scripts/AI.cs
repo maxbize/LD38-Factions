@@ -11,13 +11,14 @@ using System;
  *     2) Defend existing bases
  *     3) Capture enemy bases
  */
-public class AI : MonoBehaviour {
+public class AI : MonoBehaviour
+{
 
     // Set in editor
     public PlayerNum playerNumber;
 
     private Base[] allBases;
-    
+
     // These are lists instead of sets so that we can put them in priority order
     private List<Base> myBases = new List<Base>();
     private List<Base> enemyBases = new List<Base>();
@@ -29,17 +30,17 @@ public class AI : MonoBehaviour {
     // In-order list of prioritized bases to target, with the ideal number of units per target
     private List<KeyValuePair<Base, int>> idealTargets = new List<KeyValuePair<Base, int>>();
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start() {
         allBases = FindObjectsOfType<Base>();
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update() {
         UpdateWorldState();
         ChooseTargets();
         DistributePawns();
-	}
+    }
 
     // Update the AI's understanding of the world
     private void UpdateWorldState() {
@@ -91,14 +92,14 @@ public class AI : MonoBehaviour {
             // First priority - base owner
             while (insertionIndex < idealTargets.Count &&
                 BasePriority(idealTargets[insertionIndex].Key) < BasePriority(bas)) {
-                    insertionIndex++;
+                insertionIndex++;
             }
             // Second priority - units required
             while (insertionIndex < idealTargets.Count &&
                 idealTargets[insertionIndex].Value < numToSend) {
-                    insertionIndex++;
+                insertionIndex++;
             }
-            
+
             idealTargets.Insert(insertionIndex, new KeyValuePair<Base, int>(bas, numToSend));
         }
     }
@@ -118,10 +119,36 @@ public class AI : MonoBehaviour {
         if (idealTargets.Count == 0) {
             return; // Nothing to do!
         }
+
+        int leastRequired = 999;
+        foreach (KeyValuePair<Base, int> target in idealTargets) {
+            if (target.Value < leastRequired) {
+                leastRequired = target.Value;
+            }
+        }
+
         while (myPawns.Count > 0) { // If we still have resources after a pass just keep sending units at the same priorities
             foreach (KeyValuePair<Base, int> target in idealTargets) {
                 Base bas = target.Key;
                 int numToSend = target.Value;
+
+                if (numToSend > myPawns.Count) { // We'll be outnumbered, pick other targets
+                    if (leastRequired > myPawns.Count) { // Nothing else available - fall back to bases
+                        int baseNum = 0;
+                        foreach (Pawn pawn in myPawns) {
+                            if (myBases.Count > 0) {
+                                pawn.SetTargetPos(myBases[baseNum % myBases.Count].transform.position);
+                                baseNum++;
+                            } else { // All hope is lost. Last ditch effort - go for a base
+                                pawn.SetTargetPos(enemyBases[0].transform.position);
+                            }
+                        }
+
+                        return; // All resources distributed
+                    } else { // Some other targets could use our help!
+                        continue;
+                    }
+                }
 
                 // Create an ordered list of pawns according to distance from the target
                 List<Pawn> pawnsToSend = new List<Pawn>(numToSend);

@@ -105,7 +105,7 @@ public class Base : MonoBehaviour {
         if (owningPlayer != PlayerNum.Null) {
             spawningTime += Time.deltaTime;
             if (spawningTime > spawnTime) {
-                Pawn pawn = Instantiate(pawnPrefab, transform.position, Quaternion.identity).GetComponent<Pawn>();
+                Pawn pawn = Instantiate(pawnPrefab, transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up), Quaternion.identity).GetComponent<Pawn>();
                 pawn.Init(owningPlayer);
                 pawn.SetTargetPos(transform.position);
                 spawningTime = 0;
