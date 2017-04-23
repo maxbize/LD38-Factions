@@ -12,6 +12,8 @@ public class Base : MonoBehaviour {
     public float spawnTime;
     public GameObject pawnPrefab;
     public PlayerNum owningPlayer;
+    public GameObject captureBar;
+    public GameObject capturePSPrefab;
 
     private Planet planet;
     public PlayerNum capturingPlayer { get; private set; }
@@ -31,6 +33,7 @@ public class Base : MonoBehaviour {
 	void Update () {
         HandleCapturing();
         HandleSpawning();
+        UpdateCaptureBar();
     }
 
     private void HandleCapturing() {
@@ -67,6 +70,7 @@ public class Base : MonoBehaviour {
                 capturingTime = Time.deltaTime;
                 capturingPlayer = onlyPlayerInRange;
                 Debug.Log(capturingPlayer + " started capturing point " + gameObject);
+                captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
             } else if (capturingPlayer != PlayerNum.Null) { // Capturing player is losing their progress
                 capturingTime -= Time.deltaTime;
             }
@@ -86,6 +90,8 @@ public class Base : MonoBehaviour {
             GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
             capturingTime = 0;
             spawningTime = 0;
+            ParticleSystem capturePS = Instantiate(capturePSPrefab, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
+            capturePS.startColor = PlayerMethods.GetPlayerColor(owningPlayer);
         }
 
         Debug.DrawRay(transform.position - transform.forward * height, -transform.forward * (capturingTime / captureTime) * 3, PlayerMethods.GetPlayerColor(capturingPlayer));
@@ -109,8 +115,13 @@ public class Base : MonoBehaviour {
         planet = FindObjectOfType<Planet>(); // In case we hit this from the editor
         Vector3 toSurface = planet.toSurface(transform.position);
         transform.position += toSurface.normalized * (toSurface.magnitude - height);
-        transform.rotation = Quaternion.LookRotation(toSurface, transform.up);
+        transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(Random.onUnitSphere, toSurface), -toSurface);
         GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+    }
 
+    private void UpdateCaptureBar() {
+        Vector3 scale = captureBar.transform.localScale;
+        scale.z = (capturingTime / captureTime) * 3f;
+        captureBar.transform.localScale = scale;
     }
 }
