@@ -14,6 +14,7 @@ public class Base : MonoBehaviour {
     public PlayerNum owningPlayer;
     public GameObject captureBar;
     public GameObject capturePSPrefab;
+    public Material mat;
 
     private Planet planet;
     public PlayerNum capturingPlayer { get; private set; }
@@ -83,10 +84,12 @@ public class Base : MonoBehaviour {
         if (capturingTime < 0) {
             capturingTime = 0;
             capturingPlayer = PlayerNum.Null;
+            captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
         } else if (capturingTime > captureTime) {
             Debug.Log("Base " + gameObject + " stolen from " + owningPlayer + " by " + capturingPlayer);
             owningPlayer = capturingPlayer;
             capturingPlayer = PlayerNum.Null;
+            captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
             GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
             capturingTime = 0;
             spawningTime = 0;
@@ -116,12 +119,18 @@ public class Base : MonoBehaviour {
         Vector3 toSurface = planet.toSurface(transform.position);
         transform.position += toSurface.normalized * (toSurface.magnitude - height);
         transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(Random.onUnitSphere, toSurface), -toSurface);
-        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+        Renderer renderer = GetComponent<Renderer>();
+        renderer.sharedMaterial = mat; // Since we call this from the editor this stops us from creating instances of instances of instances.... of the material
+        renderer.material.color = PlayerMethods.GetPlayerColor(owningPlayer);
     }
 
     private void UpdateCaptureBar() {
         Vector3 scale = captureBar.transform.localScale;
-        scale.z = (capturingTime / captureTime) * 3f;
+        if (capturingPlayer == PlayerNum.Null) {
+            scale.z = 0.25f;
+        } else {
+            scale.z = (capturingTime / captureTime) * 3f;
+        }
         captureBar.transform.localScale = scale;
     }
 }

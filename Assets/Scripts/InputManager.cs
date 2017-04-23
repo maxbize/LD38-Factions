@@ -9,6 +9,7 @@ public class InputManager : MonoBehaviour {
     // Set in editor
     public PlayerNum player;
     public RectTransform selector;
+    public GameObject markerPrefab;
 
     private const int LEFT_CLICK = 0;
 
@@ -52,6 +53,7 @@ public class InputManager : MonoBehaviour {
                 }
             }
             selectedPawns.Clear();
+            Instantiate(markerPrefab, targetPosition, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, planet.transform.position - targetPosition), planet.transform.position - targetPosition));
         }
 	}
 
