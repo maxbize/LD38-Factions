@@ -104,13 +104,14 @@ public class AI : MonoBehaviour
         }
     }
 
+    // Simple way to get different AI behavior
     private int BasePriority(Base bas) {
         if (bas.owningPlayer == PlayerNum.Null) {
-            return 0;
+            return ((int)playerNumber + 0) % 3;
         } else if (bas.owningPlayer == playerNumber) {
-            return 1;
+            return ((int)playerNumber + 1) % 3;
         } else {
-            return 2;
+            return ((int)playerNumber + 2) % 3;
         }
     }
 
