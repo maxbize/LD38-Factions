@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 // Takes care of selecting units and passing out orders
 public class InputManager : MonoBehaviour {
 
     // Set in editor
     public PlayerNum player;
+    public RectTransform selector;
 
     private const int LEFT_CLICK = 0;
 
@@ -26,6 +28,10 @@ public class InputManager : MonoBehaviour {
                 startPoint = Input.mousePosition;
             } else if (Input.GetMouseButtonUp(LEFT_CLICK) && startPoint != Vector2.zero) {
                 SelectUnits(startPoint, Input.mousePosition);
+                startPoint = Vector2.zero;
+                UpdateSelector(Vector2.zero, Vector2.zero);
+            } else if (startPoint != Vector2.zero) {
+                UpdateSelector(startPoint, Input.mousePosition);
             }
         } else if (Input.GetMouseButtonDown(LEFT_CLICK)) {
             Vector3 targetPosition;
@@ -44,7 +50,6 @@ public class InputManager : MonoBehaviour {
                 }
             }
             selectedPawns.Clear();
-            startPoint = Vector2.zero;
         }
 	}
 
@@ -78,4 +83,10 @@ public class InputManager : MonoBehaviour {
         }
     }
 
+    private void UpdateSelector(Vector2 cornerOne, Vector2 cornerTwo) {
+        Vector2 bottomLeft = new Vector2(Mathf.Min(cornerOne.x, cornerTwo.x), Mathf.Min(cornerOne.y, cornerTwo.y));
+        Vector2 topRight = new Vector2(Mathf.Max(cornerOne.x, cornerTwo.x), Mathf.Max(cornerOne.y, cornerTwo.y));
+        selector.anchoredPosition = bottomLeft;
+        selector.sizeDelta = topRight - bottomLeft;
+    }
 }
