@@ -21,9 +21,11 @@ public class Base : MonoBehaviour {
     private float capturingTime;
     private float spawningTime;
     public Dictionary<PlayerNum, HashSet<Pawn>> pawnsInRange { get; private set; }
+    private GameManager gameManager;
 
 	// Use this for initialization
 	void Start () {
+        gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
         SnapToPlanet();
         GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
@@ -104,7 +106,7 @@ public class Base : MonoBehaviour {
             spawningTime += Time.deltaTime;
             if (spawningTime > spawnTime) {
                 Pawn pawn = Instantiate(pawnPrefab, transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up) + transform.up, Quaternion.identity).GetComponent<Pawn>();
-                pawn.Init(owningPlayer);
+                pawn.Init(owningPlayer, gameManager);
                 pawn.SetTargetPos(transform.position);
                 spawningTime = 0;
             }

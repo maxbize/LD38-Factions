@@ -17,11 +17,13 @@ public class InputManager : MonoBehaviour {
     private Planet planet;
     private Vector2 startPoint;
     private LayerMask pawnsAndPlanet;
+    private GameManager gameManager;
 
 	// Use this for initialization
 	void Start () {
+        gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
-        pawnsAndPlanet = (1 << LayerMask.NameToLayer("Pawn")) | (1 << LayerMask.NameToLayer("Planet"));
+        pawnsAndPlanet = (1 << LayerMask.NameToLayer("Pawn1")) | (1 << LayerMask.NameToLayer("Planet"));
     }
 	
 	// Update is called once per frame
@@ -49,7 +51,7 @@ public class InputManager : MonoBehaviour {
             foreach (Pawn pawn in selectedPawns) {
                 if (pawn != null) {
                     pawn.SetTargetPos(targetPosition);
-                    pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner));
+                    pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
                 }
             }
             selectedPawns.Clear();
@@ -84,7 +86,7 @@ public class InputManager : MonoBehaviour {
                 continue;
             }
             selectedPawns.Add(pawn);
-            pawn.SetColor(Color.magenta); // Temp hack? :)
+            pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
         }
     }
 
@@ -108,7 +110,7 @@ public class InputManager : MonoBehaviour {
                 if (Physics.Raycast(transform.position, pawn.transform.position - transform.position, out hit, Mathf.Infinity, pawnsAndPlanet)) {
                     if (hit.collider.GetComponent<Pawn>() != null) {
                         selectedPawns.Add(pawn);
-                        pawn.SetColor(Color.magenta); // Temp hack? :)
+                        pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
                     }
                 }
             }
