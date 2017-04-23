@@ -134,11 +134,9 @@ public class AI : MonoBehaviour
 
                 if (numToSend > myPawns.Count) { // We'll be outnumbered, pick other targets
                     if (leastRequired > myPawns.Count) { // Nothing else available - fall back to bases
-                        int baseNum = 0;
                         foreach (Pawn pawn in myPawns) {
                             if (myBases.Count > 0) {
-                                pawn.SetTargetPos(myBases[baseNum % myBases.Count].transform.position);
-                                baseNum++;
+                                pawn.SetTargetPos(FindClosestFriendlyBase(pawn).transform.position);
                             } else { // All hope is lost. Last ditch effort - go for a base
                                 pawn.SetTargetPos(enemyBases[0].transform.position);
                             }
@@ -174,5 +172,15 @@ public class AI : MonoBehaviour
                 }
             }
         }
+    }
+
+    private Base FindClosestFriendlyBase(Pawn pawn) {
+        Base closestBase = myBases[0];
+        foreach (Base bas in myBases) {
+            if (Vector3.Distance(pawn.transform.position, bas.transform.position) < Vector3.Distance(pawn.transform.position, closestBase.transform.position)) {
+                closestBase = bas;
+            }
+        }
+        return closestBase;
     }
 }

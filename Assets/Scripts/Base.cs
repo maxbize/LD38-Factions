@@ -70,7 +70,6 @@ public class Base : MonoBehaviour {
             } else if (onlyPlayerInRange != owningPlayer && capturingTime <= 0) { // Player is beginning to capture the point
                 capturingTime = Time.deltaTime;
                 capturingPlayer = onlyPlayerInRange;
-                Debug.Log(capturingPlayer + " started capturing point " + gameObject);
                 captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
             } else if (capturingPlayer != PlayerNum.Null) { // Capturing player is losing their progress
                 capturingTime -= Time.deltaTime;
@@ -86,7 +85,6 @@ public class Base : MonoBehaviour {
             capturingPlayer = PlayerNum.Null;
             captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
         } else if (capturingTime > captureTime) {
-            Debug.Log("Base " + gameObject + " stolen from " + owningPlayer + " by " + capturingPlayer);
             owningPlayer = capturingPlayer;
             capturingPlayer = PlayerNum.Null;
             captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
@@ -105,7 +103,7 @@ public class Base : MonoBehaviour {
         if (owningPlayer != PlayerNum.Null) {
             spawningTime += Time.deltaTime;
             if (spawningTime > spawnTime) {
-                Pawn pawn = Instantiate(pawnPrefab, transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up), Quaternion.identity).GetComponent<Pawn>();
+                Pawn pawn = Instantiate(pawnPrefab, transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up) + transform.up, Quaternion.identity).GetComponent<Pawn>();
                 pawn.Init(owningPlayer);
                 pawn.SetTargetPos(transform.position);
                 spawningTime = 0;
