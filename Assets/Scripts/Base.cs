@@ -105,7 +105,8 @@ public class Base : MonoBehaviour {
     }
 
     // Mostly copied from Pawn
-    private void SnapToPlanet() {
+    public void SnapToPlanet() {
+        planet = FindObjectOfType<Planet>(); // In case we hit this from the editor
         Vector3 toSurface = planet.toSurface(transform.position);
         transform.position += toSurface.normalized * (toSurface.magnitude - height);
         transform.rotation = Quaternion.LookRotation(toSurface, transform.up);
