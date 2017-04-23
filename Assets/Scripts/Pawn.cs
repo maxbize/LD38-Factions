@@ -66,11 +66,11 @@ public class Pawn : MonoBehaviour {
 
     public void TakeDamage(int amount) {
         healthRemaining -= amount;
-        ParticleSystem blood = Instantiate(bloodPS, transform.position, transform.rotation).GetComponent<ParticleSystem>();
+        ParticleSystem blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
         blood.startColor = PlayerMethods.GetPlayerColor(owner);
         if (healthRemaining < 0) {
-            for (int i = 0; i < 3; i++) {
-                blood = Instantiate(bloodPS, transform.position, transform.rotation).GetComponent<ParticleSystem>();
+            for (int i = 0; i < 2; i++) {
+                blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
                 blood.startColor = PlayerMethods.GetPlayerColor(owner);
                 blood.gameObject.transform.localScale *= 2;
             }
@@ -97,11 +97,12 @@ public class Pawn : MonoBehaviour {
         if (attackingOpponent == null) {
             foreach (Collider col in Physics.OverlapSphere(transform.position, attackRange, targetingLayerMask)) { // Only seek opponents that are within range of our target position
                 attackingOpponent = col.GetComponent<Pawn>();
-                if (trackingOpponent == null) {
+                if (Vector3.Distance(attackingOpponent.transform.position, targetPosition) < trackingRange) {
                     trackingOpponent = attackingOpponent;
                 }
             }
-        } else if (trackingOpponent == null) {
+        }
+        if (trackingOpponent == null) {
             foreach (Collider col in Physics.OverlapSphere(targetPosition, trackingRange, targetingLayerMask)) { // Only seek opponents that are within range of our target position
                 trackingOpponent = col.GetComponent<Pawn>();
             }
