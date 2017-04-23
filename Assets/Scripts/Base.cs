@@ -110,5 +110,7 @@ public class Base : MonoBehaviour {
         Vector3 toSurface = planet.toSurface(transform.position);
         transform.position += toSurface.normalized * (toSurface.magnitude - height);
         transform.rotation = Quaternion.LookRotation(toSurface, transform.up);
+        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+
     }
 }

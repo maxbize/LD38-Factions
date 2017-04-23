@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEditor;
 
 [CustomEditor(typeof(Base))]
+[CanEditMultipleObjects]
 public class SnapToPlanetButton : Editor
 {
     public override void OnInspectorGUI() {

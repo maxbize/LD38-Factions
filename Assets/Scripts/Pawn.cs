@@ -12,6 +12,7 @@ public class Pawn : MonoBehaviour {
     public float trackingRange; // Range at which we'll autoattack any enemies
     public int startingHealth;
     public int damage;
+    public GameObject bloodPS;
 
     public PlayerNum owner { get; private set; }
     private Planet planet;
@@ -47,7 +48,14 @@ public class Pawn : MonoBehaviour {
 
     public void TakeDamage(int amount) {
         healthRemaining -= amount;
+        ParticleSystem blood = Instantiate(bloodPS, transform.position, transform.rotation).GetComponent<ParticleSystem>();
+        blood.startColor = PlayerMethods.GetPlayerColor(owner);
         if (healthRemaining < 0) {
+            for (int i = 0; i < 3; i++) {
+                blood = Instantiate(bloodPS, transform.position, transform.rotation).GetComponent<ParticleSystem>();
+                blood.startColor = PlayerMethods.GetPlayerColor(owner);
+                blood.gameObject.transform.localScale *= 2;
+            }
             Destroy(gameObject);
         }
     }
