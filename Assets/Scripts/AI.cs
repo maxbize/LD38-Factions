@@ -69,7 +69,6 @@ public class AI : MonoBehaviour {
     private void ChooseTargets() {
         idealTargets.Clear();
 
-        // Should I just use the same logic for all base types and just change the priority based on the owner??
         foreach (Base bas in allBases) {
             int numFriendlies = bas.pawnsInRange.ContainsKey(playerNumber) ? bas.pawnsInRange[playerNumber].Count : 0;
             int numEnemies = 0;
@@ -89,10 +88,12 @@ public class AI : MonoBehaviour {
             int insertionIndex = 0;
             int numToSend = numEnemies + 1;
 
+            // First priority - base owner
             while (insertionIndex < idealTargets.Count &&
                 BasePriority(idealTargets[insertionIndex].Key) < BasePriority(bas)) {
                     insertionIndex++;
             }
+            // Second priority - units required
             while (insertionIndex < idealTargets.Count &&
                 idealTargets[insertionIndex].Value < numToSend) {
                     insertionIndex++;
@@ -115,7 +116,7 @@ public class AI : MonoBehaviour {
     // Send the pawns to their nearest high priority targets
     private void DistributePawns() {
         if (idealTargets.Count == 0) {
-            throw new Exception("You fucked up"); // Protect ourselves from an infinite loop :)
+            return; // Nothing to do!
         }
         while (myPawns.Count > 0) { // If we still have resources after a pass just keep sending units at the same priorities
             foreach (KeyValuePair<Base, int> target in idealTargets) {

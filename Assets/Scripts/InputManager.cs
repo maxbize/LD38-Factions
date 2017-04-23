@@ -40,7 +40,7 @@ public class InputManager : MonoBehaviour {
             foreach (Pawn pawn in selectedPawns) {
                 if (pawn != null) {
                     pawn.SetTargetPos(targetPosition);
-                    pawn.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(pawn.owner);
+                    pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner));
                 }
             }
             selectedPawns.Clear();
@@ -74,7 +74,7 @@ public class InputManager : MonoBehaviour {
                 continue;
             }
             selectedPawns.Add(pawn);
-            pawn.GetComponent<Renderer>().material.color = Color.magenta; // Temp hack? :)
+            pawn.SetColor(Color.magenta); // Temp hack? :)
         }
     }
 

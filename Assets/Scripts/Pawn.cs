@@ -38,7 +38,7 @@ public class Pawn : MonoBehaviour {
 
     public void Init(PlayerNum owner) {
         this.owner = owner;
-        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owner);
+        SetColor(PlayerMethods.GetPlayerColor(owner));
     }
 
     public void SetTargetPos(Vector3 target) {
@@ -83,6 +83,12 @@ public class Pawn : MonoBehaviour {
             rb.velocity = Vector3.ProjectOnPlane(targetOpponent.transform.position - transform.position, -toSurface) * moveSpeed;
         } else if (targetPosition != Vector3.zero) {
             rb.velocity = Vector3.ProjectOnPlane(targetPosition - transform.position, -toSurface) * moveSpeed;
+        }
+    }
+
+    public void SetColor(Color color) {
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>()) {
+            renderer.material.color = color;
         }
     }
 }
