@@ -15,11 +15,13 @@ public class InputManager : MonoBehaviour {
     private HashSet<Pawn> selectedPawns = new HashSet<Pawn>();
     private Planet planet;
     private Vector2 startPoint;
+    private LayerMask pawnsAndPlanet;
 
 	// Use this for initialization
 	void Start () {
-        planet = FindObjectOfType<Planet>();	
-	}
+        planet = FindObjectOfType<Planet>();
+        pawnsAndPlanet = (1 << LayerMask.NameToLayer("Pawn")) | (1 << LayerMask.NameToLayer("Planet"));
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -27,7 +29,7 @@ public class InputManager : MonoBehaviour {
             if (Input.GetMouseButtonDown(LEFT_CLICK)) {
                 startPoint = Input.mousePosition;
             } else if (Input.GetMouseButtonUp(LEFT_CLICK) && startPoint != Vector2.zero) {
-                SelectUnits(startPoint, Input.mousePosition);
+                SelectUnitsV2(startPoint, Input.mousePosition);
                 startPoint = Vector2.zero;
                 UpdateSelector(Vector2.zero, Vector2.zero);
             } else if (startPoint != Vector2.zero) {
@@ -80,6 +82,33 @@ public class InputManager : MonoBehaviour {
             }
             selectedPawns.Add(pawn);
             pawn.SetColor(Color.magenta); // Temp hack? :)
+        }
+    }
+
+    private void SelectUnitsV2(Vector2 cornerOne, Vector2 cornerTwo) {
+        Pawn[] allPawns = FindObjectsOfType<Pawn>(); // TODO: Maintain this list somewhere
+
+        Vector2 topLeft = new Vector2(Mathf.Min(cornerOne.x, cornerTwo.x), Mathf.Max(cornerOne.y, cornerTwo.y));
+        Vector2 botRight = new Vector2(Mathf.Max(cornerOne.x, cornerTwo.x), Mathf.Min(cornerOne.y, cornerTwo.y));
+
+        foreach (Pawn pawn in allPawns) {
+            if (pawn.owner != player) {
+                continue;
+            }
+            Vector2 pawnScreenPos = Camera.main.WorldToScreenPoint(pawn.transform.position);
+            if (pawnScreenPos.x > topLeft.x &&
+                pawnScreenPos.x < botRight.x &&
+                pawnScreenPos.y > botRight.y &&
+                pawnScreenPos.y < topLeft.y) {
+
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, pawn.transform.position - transform.position, out hit, Mathf.Infinity, pawnsAndPlanet)) {
+                    if (hit.collider.GetComponent<Pawn>() != null) {
+                        selectedPawns.Add(pawn);
+                        pawn.SetColor(Color.magenta); // Temp hack? :)
+                    }
+                }
+            }
         }
     }
 
