@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraManager : MonoBehaviour {
+public class Cloud : MonoBehaviour {
 
-    // Set in editor
     public float height;
     public float speed;
 
@@ -17,20 +16,9 @@ public class CameraManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        HandleInput();
+        transform.position += transform.right * speed * Time.deltaTime;
         SnapToPlanet();
 	}
-
-    private void HandleInput() {
-        if (GameManager.playing) {
-            float vertical = Input.GetAxis("Vertical");
-            float horizontal = Input.GetAxis("Horizontal");
-            Vector3 delta = transform.up * vertical + transform.right * horizontal;
-            transform.position += delta * speed * Time.deltaTime;
-        } else {
-            transform.position += transform.right * 3f * Time.deltaTime;
-        }
-    }
 
     private void SnapToPlanet() {
         Vector3 toPlanet = planet.transform.position - transform.position;
