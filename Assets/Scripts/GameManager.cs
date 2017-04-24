@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour {
     public GameObject finalVictoryScreenUI;
     public AudioClip victoryClip;
     public AudioClip defeatClip;
+    public GameObject themeSong;
 
     private GameObject currentLevel;
     private int levelIndex;
@@ -63,6 +64,7 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+        themeSong.SetActive(true);
         victoryScreenUI.SetActive(true);
         audioSource.PlayOneShot(victoryClip);
         playing = false;
@@ -132,6 +134,7 @@ public class GameManager : MonoBehaviour {
 
         // Other state
         playing = true;
+        themeSong.SetActive(false);
         startScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);

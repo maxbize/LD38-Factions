@@ -139,4 +139,9 @@ public class Pawn : MonoBehaviour {
             Debug.DrawLine(transform.position, targetPosition, Color.black);
         }
     }
+
+    public void PlayAudio(AudioClip clip) {
+        audioSource.pitch = Random.Range(1.5f, 2.5f);
+        audioSource.PlayOneShot(clip);
+    }
 }

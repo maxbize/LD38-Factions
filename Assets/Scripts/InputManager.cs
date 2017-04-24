@@ -10,6 +10,8 @@ public class InputManager : MonoBehaviour {
     public PlayerNum player;
     public RectTransform selector;
     public GameObject markerPrefab;
+    public AudioClip commandedClip;
+    public AudioClip selectedClip;
 
     private const int LEFT_CLICK = 0;
 
@@ -56,10 +58,14 @@ public class InputManager : MonoBehaviour {
                 targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition + Vector3.forward * Vector3.Distance(transform.position, planet.transform.position));
                 targetPosition += planet.toSurface(targetPosition);
             }
+            int numAudio = 0;
             foreach (Pawn pawn in selectedPawns) {
                 if (pawn != null) {
                     pawn.SetTargetPos(targetPosition);
                     pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
+                    if (numAudio++ < 3) {
+                        pawn.PlayAudio(commandedClip);
+                    }
                 }
             }
             selectedPawns.Clear();
@@ -87,7 +93,8 @@ public class InputManager : MonoBehaviour {
 
         Vector3 boxExtents = new Vector3(boxX, boxY, toPlanet.magnitude) / 2;
         Quaternion boxRot = Quaternion.LookRotation(toPlanet, Camera.main.transform.up);
-        
+
+        int numAudio = 0;
         foreach (Collider col in Physics.OverlapBox(boxCenter, boxExtents, boxRot)) {
             Pawn pawn = col.GetComponent<Pawn>();
             if (pawn == null || pawn.owner != player) {
@@ -95,6 +102,9 @@ public class InputManager : MonoBehaviour {
             }
             selectedPawns.Add(pawn);
             pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
+            if (numAudio++ < 3) {
+                pawn.PlayAudio(selectedClip);
+            }
         }
     }
 
@@ -104,6 +114,7 @@ public class InputManager : MonoBehaviour {
         Vector2 topLeft = new Vector2(Mathf.Min(cornerOne.x, cornerTwo.x), Mathf.Max(cornerOne.y, cornerTwo.y));
         Vector2 botRight = new Vector2(Mathf.Max(cornerOne.x, cornerTwo.x), Mathf.Min(cornerOne.y, cornerTwo.y));
 
+        int numAudio = 0;
         foreach (Pawn pawn in allPawns) {
             if (pawn.owner != player) {
                 continue;
@@ -119,6 +130,9 @@ public class InputManager : MonoBehaviour {
                     if (hit.collider.GetComponent<Pawn>() != null) {
                         selectedPawns.Add(pawn);
                         pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
+                        if (numAudio++ < 3) {
+                            pawn.PlayAudio(selectedClip);
+                        }
                     }
                 }
             }

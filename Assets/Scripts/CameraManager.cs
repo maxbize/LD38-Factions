@@ -28,7 +28,7 @@ public class CameraManager : MonoBehaviour {
             Vector3 delta = transform.up * vertical + transform.right * horizontal;
             transform.position += delta * speed * Time.deltaTime;
         } else {
-            transform.position += transform.right * 1.5f * Time.deltaTime;
+            transform.position += transform.right * 3f * Time.deltaTime;
         }
     }
 
