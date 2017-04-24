@@ -14,11 +14,14 @@ public class GameManager : MonoBehaviour {
     public GameObject victoryScreenUI;
     public GameObject defeatScreenUI;
     public GameObject finalVictoryScreenUI;
+    public AudioClip victoryClip;
+    public AudioClip defeatClip;
 
     private GameObject currentLevel;
     private int levelIndex;
     private Dictionary<Color, Material> sharedMats = new Dictionary<Color, Material>();
     private Base[] allBases = new Base[0];
+    private AudioSource audioSource;
 
 	// Use this for initialization
 	void Start () {
@@ -35,6 +38,8 @@ public class GameManager : MonoBehaviour {
             }
         }
         */
+
+        audioSource = GetComponent<AudioSource>();
 
         startScreenUI.SetActive(true);
         victoryScreenUI.SetActive(false);
@@ -59,6 +64,7 @@ public class GameManager : MonoBehaviour {
         }
 
         victoryScreenUI.SetActive(true);
+        audioSource.PlayOneShot(victoryClip);
         playing = false;
     }
 
@@ -70,6 +76,7 @@ public class GameManager : MonoBehaviour {
         }
 
         defeatScreenUI.SetActive(true);
+        audioSource.PlayOneShot(defeatClip);
         playing = false;
     }
 

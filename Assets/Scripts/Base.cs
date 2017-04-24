@@ -22,6 +22,7 @@ public class Base : MonoBehaviour {
     private float spawningTime;
     public Dictionary<PlayerNum, HashSet<Pawn>> pawnsInRange { get; private set; }
     private GameManager gameManager;
+    private AudioSource audioSource;
 
 	// Use this for initialization
 	void Start () {
@@ -30,6 +31,7 @@ public class Base : MonoBehaviour {
         SnapToPlanet();
         GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
         pawnsInRange = new Dictionary<PlayerNum, HashSet<Pawn>>();
+        audioSource = GetComponent<AudioSource>();
     }
 	
 	// Update is called once per frame
@@ -111,6 +113,7 @@ public class Base : MonoBehaviour {
                 pawn.Init(owningPlayer, gameManager);
                 pawn.SetTargetPos(transform.position);
                 spawningTime = 0;
+                audioSource.Play();
             }
         }
     }

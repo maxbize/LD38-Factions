@@ -24,12 +24,14 @@ public class Pawn : MonoBehaviour {
     private float attackTimer;
     public int healthRemaining { get; private set; }
     private LayerMask targetingLayerMask;
+    private AudioSource audioSource;
 
 	// Use this for initialization
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
         healthRemaining = startingHealth;
+        audioSource = GetComponent<AudioSource>();
     }
 
 	// Update is called once per frame
@@ -73,9 +75,16 @@ public class Pawn : MonoBehaviour {
                 blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
                 blood.startColor = PlayerMethods.GetPlayerColor(owner);
                 blood.gameObject.transform.localScale *= 2;
+                AudioSource source = blood.GetComponent<AudioSource>();
+                source.pitch = Random.Range(2f, 2.5f);
+                source.Play();
             }
             Destroy(gameObject);
+        } else {
+            audioSource.pitch = Random.Range(2f, 2.5f);
+            audioSource.Play();
         }
+
     }
 
     public void SetColor(Color color, GameManager gameManager) {
