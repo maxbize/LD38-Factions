@@ -22,10 +22,14 @@ public class CameraManager : MonoBehaviour {
 	}
 
     private void HandleInput() {
-        float vertical = Input.GetAxis("Vertical");
-        float horizontal = Input.GetAxis("Horizontal");
-        Vector3 delta = transform.up * vertical + transform.right * horizontal;
-        transform.position += delta * speed * Time.deltaTime;
+        if (GameManager.playing) {
+            float vertical = Input.GetAxis("Vertical");
+            float horizontal = Input.GetAxis("Horizontal");
+            Vector3 delta = transform.up * vertical + transform.right * horizontal;
+            transform.position += delta * speed * Time.deltaTime;
+        } else {
+            transform.position += transform.right * 1.5f * Time.deltaTime;
+        }
     }
 
     // Mostly copied from Pawn

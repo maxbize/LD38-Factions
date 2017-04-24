@@ -9,6 +9,11 @@ public class GameManager : MonoBehaviour {
     public Material playerMat;
     public PlayerNum humanPlayer;
     public GameObject[] levels;
+    public static bool playing = false; // Out of time - global state!
+    public GameObject startScreenUI;
+    public GameObject victoryScreenUI;
+    public GameObject defeatScreenUI;
+    public GameObject finalVictoryScreenUI;
 
     private GameObject currentLevel;
     private int levelIndex;
@@ -17,6 +22,7 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        /* Commenting this out while I'm not building levels
         // Make sure we didn't leave a level up
         foreach (Base bas in FindObjectsOfType<Base>()) {
             GameObject level = bas.transform.parent.gameObject;
@@ -28,20 +34,20 @@ public class GameManager : MonoBehaviour {
                 }
             }
         }
+        */
 
-        RestartLevel();
+        startScreenUI.SetActive(true);
+        victoryScreenUI.SetActive(false);
+        defeatScreenUI.SetActive(false);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        CheckVictory();
-        CheckDefeat();
-
-        if (Input.GetKeyDown(KeyCode.R)) {
+        if (playing) {
+            CheckVictory();
+            CheckDefeat();
+        } else if (Input.GetKeyDown(KeyCode.R) && defeatScreenUI.activeSelf) {
             RestartLevel();
-        }
-        if (Input.GetKeyDown(KeyCode.N)) {
-            levelIndex++;
         }
     }
 
@@ -52,7 +58,8 @@ public class GameManager : MonoBehaviour {
             }
         }
 
-
+        victoryScreenUI.SetActive(true);
+        playing = false;
     }
 
     private void CheckDefeat() {
@@ -62,7 +69,37 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+        defeatScreenUI.SetActive(true);
+        playing = false;
+    }
 
+    public Material GetPlayerSharedMat(Color color) {
+        if (!sharedMats.ContainsKey(color)) {
+            Material sharedMat = new Material(playerMat);
+            sharedMat.color = color;
+            sharedMats[color] = sharedMat;
+        }
+        return sharedMats[color];
+    }
+
+    public Base[] GetAllBases() {
+        return allBases;
+    }
+
+    public Pawn[] GetAllPawns() {
+        return FindObjectsOfType<Pawn>();
+    }
+
+    ////////////////////
+    //  UI METHODS
+    ////////////////////
+    public void StartGame() {
+        RestartLevel();
+    }
+
+    public void NextLevel() {
+        levelIndex++;
+        RestartLevel();
     }
 
     public void RestartLevel() {
@@ -85,22 +122,11 @@ public class GameManager : MonoBehaviour {
                 break;
             }
         }
-    }
 
-    public Material GetPlayerSharedMat(Color color) {
-        if (!sharedMats.ContainsKey(color)) {
-            Material sharedMat = new Material(playerMat);
-            sharedMat.color = color;
-            sharedMats[color] = sharedMat;
-        }
-        return sharedMats[color];
-    }
-
-    public Base[] GetAllBases() {
-        return allBases;
-    }
-
-    public Pawn[] GetAllPawns() {
-        return FindObjectsOfType<Pawn>();
+        // Other state
+        playing = true;
+        startScreenUI.SetActive(false);
+        victoryScreenUI.SetActive(false);
+        defeatScreenUI.SetActive(false);
     }
 }

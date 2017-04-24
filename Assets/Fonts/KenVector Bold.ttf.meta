@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 20bc874e3b34f6344aa3f303ed68914a
+timeCreated: 1492992292
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: KenVector Bold
+  fontNames:
+  - KenVector Bold
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

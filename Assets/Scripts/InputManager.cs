@@ -30,6 +30,12 @@ public class InputManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (!GameManager.playing) {
+            selectedPawns.Clear();
+            UpdateSelector(Vector2.zero, Vector2.zero);
+            return;
+        }
+
         if (selectedPawns.Count == 0) {
             if (Input.GetMouseButtonDown(LEFT_CLICK)) {
                 startPoint = Input.mousePosition;

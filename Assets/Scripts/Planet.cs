@@ -21,28 +21,11 @@ public class Planet : MonoBehaviour {
     public Vector3 toSurface(Vector3 source) {
         RaycastHit hit;
         Vector3 toPlanet = (transform.position - source).normalized;
-        if (Physics.Raycast(source, toPlanet, out hit, Mathf.Infinity, planetMask)) {
+        Vector3 newSource = source - toPlanet * 5; // Just in case we're slightly in the planet
+        if (Physics.Raycast(newSource, toPlanet, out hit, Mathf.Infinity, planetMask)) {
             if (hit.collider.GetComponent<Planet>() != null) {
-                return toPlanet * hit.distance;
-            } else {
-                Debug.LogWarning("Hit something other than Planet");
-                Debug.DrawRay(source, toPlanet * 5, Color.magenta, 10);
+                return hit.point - source;
             }
-        } else {
-            Vector3 newSource = source - toPlanet * 10; // Let's try again after pushing out the source since we're inside the planet
-            if (Physics.Raycast(newSource, toPlanet, out hit, Mathf.Infinity, planetMask)) {
-                if (hit.collider.GetComponent<Planet>() != null) {
-                    return hit.point - source;
-                } else {
-                    Debug.LogWarning("Hit something other than Planet again");
-                    Debug.DrawRay(newSource, toPlanet * 5, Color.magenta, 10);
-                }
-            } else {
-                Debug.LogWarning("Still no hits");
-                Debug.DrawRay(newSource, toPlanet * 5, Color.cyan, 10);
-            }
-            Debug.LogWarning("No hits");
-            Debug.DrawRay(source, toPlanet * 5, Color.cyan, 10);
         }
         return Vector3.zero;
     }
