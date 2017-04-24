@@ -65,7 +65,11 @@ public class GameManager : MonoBehaviour {
         }
 
         themeSong.SetActive(true);
-        victoryScreenUI.SetActive(true);
+        if (levelIndex == levels.Length - 1) {
+            finalVictoryScreenUI.SetActive(true);
+        } else {
+            victoryScreenUI.SetActive(true);
+        }
         audioSource.PlayOneShot(victoryClip);
         playing = false;
     }
