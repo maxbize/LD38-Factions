@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour {
     private Dictionary<Color, Material> sharedMats = new Dictionary<Color, Material>();
     private Base[] allBases = new Base[0];
     private AudioSource audioSource;
+    private LevelText levelText;
 
 	// Use this for initialization
 	void Start () {
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour {
         */
 
         audioSource = GetComponent<AudioSource>();
+        levelText = FindObjectOfType<LevelText>();
 
         startScreenUI.SetActive(true);
         victoryScreenUI.SetActive(false);
@@ -142,5 +144,7 @@ public class GameManager : MonoBehaviour {
         startScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
+
+        levelText.DisplayText(levelIndex + 1, levels[levelIndex].gameObject.name);
     }
 }

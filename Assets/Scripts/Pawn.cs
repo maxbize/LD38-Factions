@@ -30,7 +30,6 @@ public class Pawn : MonoBehaviour {
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
-        healthRemaining = startingHealth;
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -45,6 +44,7 @@ public class Pawn : MonoBehaviour {
     public void Init(PlayerNum owner, GameManager gameManager) {
         this.owner = owner;
         SetColor(PlayerMethods.GetPlayerColor(owner), gameManager);
+        healthRemaining = startingHealth; // Need to do this here instead of start so that if someone hits us as we spawn we don't insta-die
         
         // Ugly hack - could be cleaned up
         if (owner == PlayerNum.One) {
