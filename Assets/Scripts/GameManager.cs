@@ -88,6 +88,10 @@ public class GameManager : MonoBehaviour {
         playing = false;
     }
 
+    public Material GetPlayerSharedMat(PlayerNum playerNum) {
+        return GetPlayerSharedMat(PlayerMethods.GetPlayerColor(playerNum));
+    }
+
     public Material GetPlayerSharedMat(Color color) {
         if (!sharedMats.ContainsKey(color)) {
             Material sharedMat = new Material(playerMat);

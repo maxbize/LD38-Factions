@@ -15,6 +15,7 @@ public class Base : MonoBehaviour {
     public GameObject captureBar;
     public GameObject capturePSPrefab;
     public Material mat;
+    public GameObject gutsPrefab;
 
     private Planet planet;
     public PlayerNum capturingPlayer { get; private set; }
@@ -91,10 +92,16 @@ public class Base : MonoBehaviour {
             capturingPlayer = PlayerNum.Null;
             captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
         } else if (capturingTime > captureTime) {
+            for (int i = 0; i < 20; i++) {
+                Vector3 random = Random.onUnitSphere * Random.Range(5f, 10f);
+                GameObject guts = Instantiate(gutsPrefab, transform.position + transform.up + random / 5, Random.rotation);
+                guts.GetComponent<Renderer>().sharedMaterial = GetComponent<Renderer>().sharedMaterial;
+                guts.GetComponent<Rigidbody>().velocity = transform.up * 15 + random;
+            }
             owningPlayer = capturingPlayer;
             capturingPlayer = PlayerNum.Null;
-            captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
-            GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+            captureBar.GetComponent<Renderer>().sharedMaterial = gameManager.GetPlayerSharedMat(capturingPlayer);
+            GetComponent<Renderer>().sharedMaterial = gameManager.GetPlayerSharedMat(owningPlayer);
             capturingTime = 0;
             spawningTime = 0;
             ParticleSystem capturePS = Instantiate(capturePSPrefab, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
@@ -109,9 +116,11 @@ public class Base : MonoBehaviour {
         if (owningPlayer != PlayerNum.Null) {
             spawningTime += Time.deltaTime;
             if (spawningTime > spawnTime) {
-                Pawn pawn = Instantiate(pawnPrefab, transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up) + transform.up, Quaternion.identity).GetComponent<Pawn>();
+                Vector3 spawnPoint = transform.position + Vector3.ProjectOnPlane(Random.onUnitSphere, transform.up);
+                Vector3 planetToSpawn = (planet.transform.position - spawnPoint).normalized;
+                Pawn pawn = Instantiate(pawnPrefab, spawnPoint - planetToSpawn * 100, Quaternion.identity).GetComponent<Pawn>();
                 pawn.Init(owningPlayer, gameManager);
-                pawn.SetTargetPos(transform.position);
+                pawn.SetTargetPos(spawnPoint);
                 spawningTime = 0;
                 audioSource.Play();
             }

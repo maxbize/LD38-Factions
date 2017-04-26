@@ -14,6 +14,7 @@ public class Pawn : MonoBehaviour {
     public int startingHealth;
     public int damage;
     public GameObject bloodPS;
+    public GameObject ragdollPrefab;
 
     public PlayerNum owner;// { get; private set; }
     private Planet planet;
@@ -25,6 +26,7 @@ public class Pawn : MonoBehaviour {
     public int healthRemaining { get; private set; }
     private LayerMask targetingLayerMask;
     private AudioSource audioSource;
+    private float _height;
 
 	// Use this for initialization
 	void Start () {
@@ -35,6 +37,8 @@ public class Pawn : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+        _height -= Mathf.Abs(_height - height) * Time.deltaTime * 15;
+
         HandleAttacking();
         SnapToPlanet();
 
@@ -60,13 +64,15 @@ public class Pawn : MonoBehaviour {
             targetingLayerMask = PlayerMethods.allButP4;
             gameObject.layer = LayerMask.NameToLayer("Pawn4");
         }
+
+        _height = 100;
     }
 
     public void SetTargetPos(Vector3 target) {
         targetPosition = target;
     }
 
-    public void TakeDamage(int amount) {
+    public void TakeDamage(int amount, Vector3 sourceLocation) {
         healthRemaining -= amount;
         ParticleSystem blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
         blood.startColor = PlayerMethods.GetPlayerColor(owner);
@@ -75,10 +81,19 @@ public class Pawn : MonoBehaviour {
                 blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
                 blood.startColor = PlayerMethods.GetPlayerColor(owner);
                 blood.gameObject.transform.localScale *= 2;
+
                 AudioSource source = blood.GetComponent<AudioSource>();
                 source.pitch = Random.Range(2f, 2.5f);
                 source.Play();
             }
+
+            GameObject guts = Instantiate(ragdollPrefab, transform.position, Random.rotation);
+            guts.GetComponentInChildren<Renderer>().sharedMaterial = GetComponentInChildren<Renderer>().sharedMaterial;
+            Vector3 planetToPawn = (transform.position - planet.transform.position).normalized;
+            Vector3 sourceToPawn = (transform.position - sourceLocation).normalized;
+            guts.GetComponent<Rigidbody>().velocity = planetToPawn * 15 + sourceToPawn * 20 + Random.onUnitSphere * 2;
+            guts.GetComponent<Rigidbody>().angularVelocity = Random.onUnitSphere * 3;
+
             Destroy(gameObject);
         } else {
             audioSource.pitch = Random.Range(2f, 2.5f);
@@ -120,7 +135,7 @@ public class Pawn : MonoBehaviour {
         // Do the attack
         attackTimer += Time.deltaTime;
         if (attackTimer > attackSpeed && attackingOpponent != null) {
-            attackingOpponent.TakeDamage(damage);
+            attackingOpponent.TakeDamage(damage, transform.position);
             attackTimer = 0;
         }
 
@@ -128,7 +143,7 @@ public class Pawn : MonoBehaviour {
 
     private void SnapToPlanet() {
         Vector3 toSurface = planet.toSurface(transform.position);
-        transform.position += toSurface.normalized * (toSurface.magnitude - height);
+        transform.position += toSurface.normalized * (toSurface.magnitude - _height);
         Vector3 newForward = Vector3.ProjectOnPlane(transform.forward, -toSurface);
         transform.rotation = Quaternion.LookRotation(newForward, -toSurface);
         if (trackingOpponent != null) {
