@@ -31,7 +31,7 @@ public class AutoDestroy : MonoBehaviour {
 
             transform.localScale = Vector3.one * (1 - scalingTime / SCALE_TIME);
             if (tr != null) {
-                tr.widthMultiplier = 1 - scalingTime / SCALE_TIME;
+                tr.widthMultiplier = trailRenderStartingWidth * (1 - scalingTime / SCALE_TIME);
             }
         }
 	}
