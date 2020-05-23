@@ -14,6 +14,7 @@ public class InputManager : MonoBehaviour {
     public AudioClip selectedClip;
 
     private const int LEFT_CLICK = 0;
+    private const int RIGHT_CLICK = 1;
 
     private HashSet<Pawn> selectedPawns = new HashSet<Pawn>();
     private Planet planet;
@@ -38,17 +39,15 @@ public class InputManager : MonoBehaviour {
             return;
         }
 
-        if (selectedPawns.Count == 0) {
-            if (Input.GetMouseButtonDown(LEFT_CLICK)) {
-                startPoint = Input.mousePosition;
-            } else if (Input.GetMouseButtonUp(LEFT_CLICK) && startPoint != Vector2.zero) {
-                SelectUnitsV2(startPoint, Input.mousePosition);
-                startPoint = Vector2.zero;
-                UpdateSelector(Vector2.zero, Vector2.zero);
-            } else if (startPoint != Vector2.zero) {
-                UpdateSelector(startPoint, Input.mousePosition);
-            }
-        } else if (Input.GetMouseButtonDown(LEFT_CLICK)) {
+        if (Input.GetMouseButtonDown(LEFT_CLICK) && startPoint == Vector2.zero) {
+            startPoint = Input.mousePosition;
+        } else if (Input.GetMouseButtonUp(LEFT_CLICK) && startPoint != Vector2.zero) {
+            SelectUnitsV2(startPoint, Input.mousePosition);
+            startPoint = Vector2.zero;
+            UpdateSelector(Vector2.zero, Vector2.zero);
+        } else if (startPoint != Vector2.zero) {
+            UpdateSelector(startPoint, Input.mousePosition);
+        } else if (Input.GetMouseButtonDown(RIGHT_CLICK) && selectedPawns.Count > 0) {
             Vector3 targetPosition;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -62,13 +61,11 @@ public class InputManager : MonoBehaviour {
             foreach (Pawn pawn in selectedPawns) {
                 if (pawn != null) {
                     pawn.SetTargetPos(targetPosition);
-                    pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
                     if (numAudio++ < 3) {
                         pawn.PlayAudio(commandedClip);
                     }
                 }
             }
-            selectedPawns.Clear();
             Vector3 targetToPlanet = planet.transform.position - targetPosition;
             Instantiate(markerPrefab, targetPosition - targetToPlanet * 0.05f, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, targetToPlanet), targetToPlanet));
         }
@@ -114,6 +111,7 @@ public class InputManager : MonoBehaviour {
         Vector2 topLeft = new Vector2(Mathf.Min(cornerOne.x, cornerTwo.x), Mathf.Max(cornerOne.y, cornerTwo.y));
         Vector2 botRight = new Vector2(Mathf.Max(cornerOne.x, cornerTwo.x), Mathf.Min(cornerOne.y, cornerTwo.y));
 
+        HashSet<Pawn> newPawns = new HashSet<Pawn>();
         int numAudio = 0;
         foreach (Pawn pawn in allPawns) {
             if (pawn.owner != player) {
@@ -128,7 +126,7 @@ public class InputManager : MonoBehaviour {
                 RaycastHit hit;
                 if (Physics.Raycast(transform.position, pawn.transform.position - transform.position, out hit, Mathf.Infinity, pawnsAndPlanet)) {
                     if (hit.collider.GetComponent<Pawn>() != null) {
-                        selectedPawns.Add(pawn);
+                        newPawns.Add(pawn);
                         pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
                         if (numAudio++ < 3) {
                             pawn.PlayAudio(selectedClip);
@@ -137,6 +135,13 @@ public class InputManager : MonoBehaviour {
                 }
             }
         }
+
+        foreach (Pawn pawn in selectedPawns) {
+            if (!newPawns.Contains(pawn)) {
+                pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
+            }
+        }
+        selectedPawns = newPawns;
     }
 
     private void UpdateSelector(Vector2 cornerOne, Vector2 cornerTwo) {
