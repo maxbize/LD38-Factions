@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviour {
     public GameObject victoryScreenUI;
     public GameObject defeatScreenUI;
     public GameObject finalVictoryScreenUI;
+    public Button continueGameButton;
     public AudioClip victoryClip;
     public AudioClip defeatClip;
     public GameObject themeSong;
@@ -40,6 +42,12 @@ public class GameManager : MonoBehaviour {
             }
         }
         */
+
+        int savedIndex = PlayerPrefs.GetInt("level");
+        if (savedIndex == 0) {
+            continueGameButton.interactable = false;
+            continueGameButton.GetComponentInChildren<Text>().color = new Color(0.8f, 0.8f, 0.8f, 0.5f);
+        }
 
         audioSource = GetComponent<AudioSource>();
         levelText = FindObjectOfType<LevelText>();
@@ -116,8 +124,14 @@ public class GameManager : MonoBehaviour {
         RestartLevel();
     }
 
+    public void ContinueGame() {
+        levelIndex = PlayerPrefs.GetInt("level");
+        RestartLevel();
+    }
+
     public void NextLevel() {
         levelIndex++;
+        PlayerPrefs.SetInt("level", levelIndex);
         RestartLevel();
     }
 
