@@ -39,13 +39,13 @@ public class InputManager : MonoBehaviour {
             return;
         }
 
-        if (Input.GetMouseButtonDown(LEFT_CLICK) && startPoint == Vector2.zero) {
+        if (Input.GetMouseButtonDown(LEFT_CLICK)) {
             startPoint = Input.mousePosition;
-        } else if (Input.GetMouseButtonUp(LEFT_CLICK) && startPoint != Vector2.zero) {
+        } else if (!Input.GetMouseButton(LEFT_CLICK) && startPoint != Vector2.zero) {
             SelectUnitsV2(startPoint, Input.mousePosition);
             startPoint = Vector2.zero;
             UpdateSelector(Vector2.zero, Vector2.zero);
-        } else if (startPoint != Vector2.zero) {
+        } else if (Input.GetMouseButton(LEFT_CLICK) && startPoint != Vector2.zero) {
             UpdateSelector(startPoint, Input.mousePosition);
         } else if (Input.GetMouseButtonDown(RIGHT_CLICK) && selectedPawns.Count > 0) {
             Vector3 targetPosition;
@@ -137,7 +137,7 @@ public class InputManager : MonoBehaviour {
         }
 
         foreach (Pawn pawn in selectedPawns) {
-            if (!newPawns.Contains(pawn)) {
+            if (pawn != null && !newPawns.Contains(pawn)) {
                 pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
             }
         }
