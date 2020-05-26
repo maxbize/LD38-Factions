@@ -15,6 +15,8 @@ public class Pawn : MonoBehaviour {
     public int damage;
     public GameObject bloodPS;
     public GameObject ragdollPrefab;
+    public AnimationCurve heightCurve;
+    public float dropTime;
 
     public PlayerNum owner;// { get; private set; }
     private Planet planet;
@@ -27,17 +29,20 @@ public class Pawn : MonoBehaviour {
     private LayerMask targetingLayerMask;
     private AudioSource audioSource;
     private float _height;
+    private float spawnTime;
 
 	// Use this for initialization
 	void Start () {
         planet = FindObjectOfType<Planet>(); // TODO: remove FindObjectOfType
         rb = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+        spawnTime = Time.timeSinceLevelLoad;
     }
 
 	// Update is called once per frame
 	void Update () {
-        _height -= Mathf.Abs(_height - height) * Time.deltaTime * 15;
+        float t = Mathf.Clamp01((Time.timeSinceLevelLoad - spawnTime) / dropTime);
+        _height = heightCurve.Evaluate(t) * 30 + height;
 
         HandleAttacking();
         SnapToPlanet();
@@ -65,7 +70,6 @@ public class Pawn : MonoBehaviour {
             gameObject.layer = LayerMask.NameToLayer("Pawn4");
         }
 
-        _height = 100;
     }
 
     public void SetTargetPos(Vector3 target) {
