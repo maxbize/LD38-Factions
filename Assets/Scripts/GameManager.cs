@@ -109,6 +109,7 @@ public class GameManager : MonoBehaviour {
         if (!sharedMats.ContainsKey(color)) {
             Material sharedMat = new Material(playerMat);
             sharedMat.color = color;
+            sharedMat.enableInstancing = true;
             sharedMats[color] = sharedMat;
         }
         return sharedMats[color];

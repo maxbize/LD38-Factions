@@ -30,7 +30,7 @@ public class Base : MonoBehaviour {
         gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
         SnapToPlanet();
-        GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+        GetComponent<Renderer>().material = gameManager.GetPlayerSharedMat(owningPlayer);
         pawnsInRange = new Dictionary<PlayerNum, HashSet<Pawn>>();
         audioSource = GetComponent<AudioSource>();
     }
@@ -77,7 +77,7 @@ public class Base : MonoBehaviour {
             } else if (onlyPlayerInRange != owningPlayer && capturingTime <= 0) { // Player is beginning to capture the point
                 capturingTime = Time.deltaTime;
                 capturingPlayer = onlyPlayerInRange;
-                captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
+                captureBar.GetComponent<Renderer>().material = gameManager.GetPlayerSharedMat(capturingPlayer);
             } else if (capturingPlayer != PlayerNum.Null) { // Capturing player is losing their progress
                 capturingTime -= Time.deltaTime;
             }
@@ -90,7 +90,7 @@ public class Base : MonoBehaviour {
         if (capturingTime < 0) {
             capturingTime = 0;
             capturingPlayer = PlayerNum.Null;
-            captureBar.GetComponent<Renderer>().material.color = PlayerMethods.GetPlayerColor(capturingPlayer);
+            captureBar.GetComponent<Renderer>().material = gameManager.GetPlayerSharedMat(capturingPlayer);
         } else if (capturingTime > captureTime) {
             for (int i = 0; i < 20; i++) {
                 Vector3 random = Random.onUnitSphere * Random.Range(5f, 10f);
@@ -135,7 +135,7 @@ public class Base : MonoBehaviour {
         transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(Random.onUnitSphere, toSurface), -toSurface);
         Renderer renderer = GetComponent<Renderer>();
         renderer.sharedMaterial = mat; // Since we call this from the editor this stops us from creating instances of instances of instances.... of the material
-        renderer.material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+        renderer.material = gameManager.GetPlayerSharedMat(owningPlayer);
     }
 
     private void UpdateCaptureBar() {
