@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour {
     private Base[] allBases = new Base[0];
     private AudioSource audioSource;
     private LevelText levelText;
+    private CameraManager cam;
 
 	// Use this for initialization
 	void Start () {
@@ -51,6 +52,7 @@ public class GameManager : MonoBehaviour {
 
         audioSource = GetComponent<AudioSource>();
         levelText = FindObjectOfType<LevelText>();
+        cam = FindObjectOfType<CameraManager>();
 
         startScreenUI.SetActive(true);
         victoryScreenUI.SetActive(false);
@@ -62,6 +64,9 @@ public class GameManager : MonoBehaviour {
         if (playing) {
             CheckVictory();
             CheckDefeat();
+            if (Input.GetKeyDown(KeyCode.R)) {
+                RestartLevel();
+            }
         } else if (Input.GetKeyDown(KeyCode.R) && defeatScreenUI.activeSelf) {
             RestartLevel();
         }
@@ -151,7 +156,7 @@ public class GameManager : MonoBehaviour {
         foreach (Base bas in allBases) {
             if (bas.owningPlayer == humanPlayer) {
                 Camera.main.transform.position = bas.transform.position + bas.transform.up * 5;
-                Camera.main.transform.rotation = Quaternion.identity;
+                cam.SnapToPlanet();
                 break;
             }
         }

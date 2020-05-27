@@ -32,7 +32,7 @@ public class CameraManager : MonoBehaviour {
         }
     }
 
-    private void SnapToPlanet() {
+    public void SnapToPlanet() {
         Vector3 toPlanet = planet.transform.position - transform.position;
         transform.position += toPlanet.normalized * (toPlanet.magnitude - height);
         transform.rotation = Quaternion.LookRotation(toPlanet, transform.up);
