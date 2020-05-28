@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour {
     public AudioClip victoryClip;
     public AudioClip defeatClip;
     public GameObject themeSong;
+    public float slowDownTime;
 
     private GameObject currentLevel;
     private int levelIndex;
@@ -27,6 +28,7 @@ public class GameManager : MonoBehaviour {
     private AudioSource audioSource;
     private LevelText levelText;
     private CameraManager cam;
+    private float slowmoStartMarker;
 
 	// Use this for initialization
 	void Start () {
@@ -62,6 +64,7 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         if (playing) {
+            HandleTimeScale();
             CheckVictory();
             CheckDefeat();
             if (Input.GetKeyDown(KeyCode.R)) {
@@ -69,6 +72,26 @@ public class GameManager : MonoBehaviour {
             }
         } else if (Input.GetKeyDown(KeyCode.R) && defeatScreenUI.activeSelf) {
             RestartLevel();
+        }
+    }
+
+    private void HandleTimeScale() {
+        if (Input.GetKey(KeyCode.Space)) {
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                float t0 = (1f - Time.timeScale) / 0.9f;
+                slowmoStartMarker = Time.realtimeSinceStartup - t0 * slowDownTime;
+            }
+            float t = Mathf.Clamp01((Time.realtimeSinceStartup - slowmoStartMarker) / slowDownTime);
+            Time.timeScale = 1f - 0.9f * t;
+            Time.fixedDeltaTime = 0.02f - 0.018f * t;
+        } else {
+            if (Input.GetKeyUp(KeyCode.Space)) {
+                float t0 = (Time.timeScale - 0.1f) / 0.9f;
+                slowmoStartMarker = Time.realtimeSinceStartup - t0 * slowDownTime;
+            }
+            float t = Mathf.Clamp01((Time.realtimeSinceStartup - slowmoStartMarker) / slowDownTime);
+            Time.timeScale = 0.1f + 0.9f * t;
+            Time.fixedDeltaTime = 0.002f + 0.018f * t;
         }
     }
 
@@ -87,6 +110,8 @@ public class GameManager : MonoBehaviour {
         }
         audioSource.PlayOneShot(victoryClip);
         playing = false;
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = 0.02f;
     }
 
     private void CheckDefeat() {
@@ -99,6 +124,8 @@ public class GameManager : MonoBehaviour {
         defeatScreenUI.SetActive(true);
         audioSource.PlayOneShot(defeatClip);
         playing = false;
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = 0.02f;
     }
 
     public Material GetPlayerSharedMat(PlayerNum playerNum) {

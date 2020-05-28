@@ -30,6 +30,7 @@ public class Pawn : MonoBehaviour {
     private AudioSource audioSource;
     private float _height;
     private float spawnTime;
+    private float audioPitch;
 
 	// Use this for initialization
 	void Start () {
@@ -46,8 +47,9 @@ public class Pawn : MonoBehaviour {
 
         HandleAttacking();
         SnapToPlanet();
+        audioSource.pitch = audioPitch * Mathf.Lerp(0.25f, 1, Time.timeScale);
 
-        Debug.DrawRay(transform.position + transform.up * 1.2f + transform.right, -transform.right * 2 * ((float)healthRemaining / startingHealth), PlayerMethods.GetPlayerColor(owner));
+        //Debug.DrawRay(transform.position + transform.up * 1.2f + transform.right, -transform.right * 2 * ((float)healthRemaining / startingHealth), PlayerMethods.GetPlayerColor(owner));
 	}
 
     public void Init(PlayerNum owner, GameManager gameManager) {
@@ -85,10 +87,6 @@ public class Pawn : MonoBehaviour {
                 blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
                 blood.startColor = PlayerMethods.GetPlayerColor(owner);
                 blood.gameObject.transform.localScale *= 2;
-
-                AudioSource source = blood.GetComponent<AudioSource>();
-                source.pitch = Random.Range(2f, 2.5f);
-                source.Play();
             }
 
             GameObject guts = Instantiate(ragdollPrefab, transform.position, Random.rotation);
@@ -100,7 +98,7 @@ public class Pawn : MonoBehaviour {
 
             Destroy(gameObject);
         } else {
-            audioSource.pitch = Random.Range(2f, 2.5f);
+            audioPitch = Random.Range(2f, 2.5f);
             audioSource.Play();
         }
 
@@ -150,17 +148,27 @@ public class Pawn : MonoBehaviour {
         transform.position += toSurface.normalized * (toSurface.magnitude - _height);
         Vector3 newForward = Vector3.ProjectOnPlane(transform.forward, -toSurface);
         transform.rotation = Quaternion.LookRotation(newForward, -toSurface);
+
+        Vector3 toTarget = Vector3.zero;
         if (trackingOpponent != null) {
-            rb.velocity = Vector3.ProjectOnPlane(trackingOpponent.transform.position - transform.position, -toSurface) * moveSpeed;
+            toTarget = trackingOpponent.transform.position - transform.position;
         } else if (targetPosition != Vector3.zero) {
-            rb.velocity = Vector3.ProjectOnPlane(targetPosition - transform.position, -toSurface) * moveSpeed;
-            Debug.DrawRay(transform.position, rb.velocity, Color.cyan);
-            Debug.DrawLine(transform.position, targetPosition, Color.black);
+            toTarget = targetPosition - transform.position;
         }
+
+        if (toTarget != null) {
+            //rb.velocity = Vector3.ProjectOnPlane(toTarget, -toSurface).normalized * toTarget.magnitude * moveSpeed;
+            rb.velocity = Vector3.ProjectOnPlane(toTarget, -toSurface) * moveSpeed;
+            Debug.DrawRay(transform.position, toTarget, Color.cyan);
+
+            //Debug.DrawRay(transform.position, rb.velocity, Color.cyan);
+            //Debug.DrawLine(transform.position, targetPosition, Color.black);
+        }
+
     }
 
     public void PlayAudio(AudioClip clip) {
-        audioSource.pitch = Random.Range(1.5f, 2.5f);
+        audioPitch = Random.Range(1.5f, 2.5f);
         audioSource.PlayOneShot(clip);
     }
 }
