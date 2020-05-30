@@ -8,14 +8,24 @@ public class CameraManager : MonoBehaviour {
     public float height;
     public float maxSpeed;
     public float accel;
+    public float mouseAccel;
+
+    private const int NUM_DELTAS = 2;
 
     private Planet planet;
     private Vector2 dir;
+    private Vector2 lastMousePos;
+    private List<Vector2> lastMouseDeltas;
+    private int deltaIndex;
 
 	// Use this for initialization
 	void Start () {
         planet = FindObjectOfType<Planet>();
-	}
+        lastMouseDeltas = new List<Vector2>(NUM_DELTAS);
+        for (int i = 0; i < NUM_DELTAS; i++) {
+            lastMouseDeltas.Add(Vector2.zero);
+        }
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -25,14 +35,46 @@ public class CameraManager : MonoBehaviour {
 
     private void HandleInput() {
         if (GameManager.playing) {
-            float horizontal = Input.GetAxisRaw("Horizontal");
-            float vertical = Input.GetAxisRaw("Vertical");
-            horizontal = horizontal != 0 ? horizontal : -dir.x * 2.5f;
-            vertical = vertical != 0 ? vertical : -dir.y * 2.5f;
-            dir.x = Mathf.Clamp(dir.x + horizontal * accel * Time.unscaledDeltaTime , -1, 1);
-            dir.y = Mathf.Clamp(dir.y + vertical * accel * Time.unscaledDeltaTime, -1, 1);
-            Vector3 delta = transform.right * dir.x + transform.up * dir.y;
-            transform.position += delta * maxSpeed * Time.unscaledDeltaTime;
+            if (Input.GetMouseButton(2)) {
+                if (Input.GetMouseButtonDown(2)) {
+                    dir = Vector2.zero;
+                    deltaIndex = 0;
+                    for (int i = 0; i < NUM_DELTAS; i++) {
+                        lastMouseDeltas[i] = Vector2.zero;
+                    }
+                }
+                Vector2 mousePos = Input.mousePosition;
+                Vector2 mouseDelta = lastMousePos - mousePos;
+                Vector3 delta = transform.right * mouseDelta.x * mouseAccel + transform.up * mouseDelta.y * mouseAccel;
+                transform.position += delta;
+
+                lastMouseDeltas[deltaIndex] = mouseDelta;
+                deltaIndex = (deltaIndex + 1) % NUM_DELTAS;
+
+            } else if (Input.GetMouseButtonUp(2)) {
+                Vector2 averageDelta = Vector2.zero;
+                for (int i = 0; i < NUM_DELTAS; i++) {
+                    averageDelta += lastMouseDeltas[i];
+                }
+                averageDelta = averageDelta / NUM_DELTAS;
+                dir = averageDelta * mouseAccel;
+                if (Mathf.Abs(dir.x) > 1) {
+                    dir /= Mathf.Abs(dir.x);
+                }
+                if (Mathf.Abs(dir.y) > 1) {
+                    dir /= Mathf.Abs(dir.y);
+                }
+            } else {
+                float horizontal = Input.GetAxisRaw("Horizontal");
+                float vertical = Input.GetAxisRaw("Vertical");
+                horizontal = horizontal != 0 ? horizontal : -dir.x * 2.5f;
+                vertical = vertical != 0 ? vertical : -dir.y * 2.5f;
+                dir.x = Mathf.Clamp(dir.x + horizontal * accel * Time.unscaledDeltaTime, -1, 1);
+                dir.y = Mathf.Clamp(dir.y + vertical * accel * Time.unscaledDeltaTime, -1, 1);
+                Vector3 delta = transform.right * dir.x + transform.up * dir.y;
+                transform.position += delta * maxSpeed * Time.unscaledDeltaTime;
+            }
+            lastMousePos = Input.mousePosition;
         } else {
             transform.position += transform.right * 3f * Time.unscaledDeltaTime;
         }

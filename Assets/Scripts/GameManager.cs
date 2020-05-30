@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour {
     public GameObject victoryScreenUI;
     public GameObject defeatScreenUI;
     public GameObject finalVictoryScreenUI;
+    public GameObject instructionScreenUI;
     public Button continueGameButton;
     public AudioClip victoryClip;
     public AudioClip defeatClip;
@@ -57,6 +58,7 @@ public class GameManager : MonoBehaviour {
         cam = FindObjectOfType<CameraManager>();
 
         startScreenUI.SetActive(true);
+        instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
     }
@@ -197,5 +199,19 @@ public class GameManager : MonoBehaviour {
         defeatScreenUI.SetActive(false);
 
         levelText.DisplayText(levelIndex + 1, levels[levelIndex].gameObject.name);
+    }
+
+    public void ShowInstructions() {
+        instructionScreenUI.SetActive(true);
+        startScreenUI.SetActive(false);
+    }
+
+    public void HideInstructions() {
+        startScreenUI.SetActive(true);
+        instructionScreenUI.SetActive(false);
+    }
+
+    public void FactionsEvolvedSignup() {
+        Application.OpenURL("https://www.factionsevolvedgame.com");
     }
 }
