@@ -135,7 +135,11 @@ public class Base : MonoBehaviour {
         transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(Random.onUnitSphere, toSurface), -toSurface);
         Renderer renderer = GetComponent<Renderer>();
         renderer.sharedMaterial = mat; // Since we call this from the editor this stops us from creating instances of instances of instances.... of the material
-        renderer.material = gameManager.GetPlayerSharedMat(owningPlayer);
+        if (gameManager == null) {
+            renderer.material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+        } else {
+            renderer.material = gameManager.GetPlayerSharedMat(owningPlayer);
+        }
     }
 
     private void UpdateCaptureBar() {
