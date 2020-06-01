@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour {
     private LevelText levelText;
     private CameraManager cam;
     private float slowmoStartMarker;
+    private float elapsedTime;
+    private float levelStartTime;
 
 	// Use this for initialization
 	void Start () {
@@ -62,14 +64,23 @@ public class GameManager : MonoBehaviour {
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
     }
-	
-	// Update is called once per frame
+
+    // Update is called once per frame
+    private int dbg = 0;
 	void Update () {
+        if (dbg++ % 60 == 0) {
+            Debug.Log(elapsedTime);
+        }
         if (playing) {
             HandleTimeScale();
             CheckVictory();
             CheckDefeat();
             if (Input.GetKeyDown(KeyCode.R)) {
+                if (elapsedTime != -1) {
+                    elapsedTime += Time.realtimeSinceStartup - levelStartTime;
+                    PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+                }
+
                 RestartLevel();
             }
         } else if (Input.GetKeyDown(KeyCode.R) && defeatScreenUI.activeSelf) {
@@ -105,6 +116,10 @@ public class GameManager : MonoBehaviour {
         }
 
         themeSong.SetActive(true);
+        if (elapsedTime != -1) {
+            elapsedTime += Time.realtimeSinceStartup - levelStartTime;
+            PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+        }
         if (levelIndex == levels.Length - 1) {
             finalVictoryScreenUI.SetActive(true);
         } else {
@@ -123,6 +138,10 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+        if (elapsedTime != -1) {
+            elapsedTime += Time.realtimeSinceStartup - levelStartTime;
+            PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+        }
         defeatScreenUI.SetActive(true);
         audioSource.PlayOneShot(defeatClip);
         playing = false;
@@ -156,10 +175,12 @@ public class GameManager : MonoBehaviour {
     //  UI METHODS
     ////////////////////
     public void StartGame() {
+        elapsedTime = 0;
         RestartLevel();
     }
 
     public void ContinueGame() {
+        elapsedTime = PlayerPrefs.GetInt("elapsed", -1);
         levelIndex = PlayerPrefs.GetInt("level");
         RestartLevel();
     }
@@ -167,6 +188,9 @@ public class GameManager : MonoBehaviour {
     public void NextLevel() {
         levelIndex++;
         PlayerPrefs.SetInt("level", levelIndex);
+        if (PlayerPrefs.GetInt("maxLevel") < levelIndex) {
+            PlayerPrefs.SetInt("maxLevel", levelIndex);
+        }
         RestartLevel();
     }
 
@@ -199,6 +223,7 @@ public class GameManager : MonoBehaviour {
         defeatScreenUI.SetActive(false);
 
         levelText.DisplayText(levelIndex + 1, levels[levelIndex].gameObject.name);
+        levelStartTime = Time.realtimeSinceStartup;
     }
 
     public void ShowInstructions() {
@@ -212,6 +237,6 @@ public class GameManager : MonoBehaviour {
     }
 
     public void FactionsEvolvedSignup() {
-        Application.OpenURL("https://www.factionsevolvedgame.com");
+        Application.ExternalEval("window.open(\"https://www.factionsevolvedgame.com\")");
     }
 }
