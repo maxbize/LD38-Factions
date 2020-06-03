@@ -125,7 +125,7 @@ public class GameManager : MonoBehaviour {
             elapsedTime += Time.realtimeSinceStartup - levelStartTime;
             PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
         }
-        if (levelIndex == levels.Length - 1) {
+        if (levelIndex == levels.Length) {
             finalVictoryScreenUI.SetActive(true);
             int bestTime = PlayerPrefs.GetInt("bestComplete");
             if (bestTime == 0 || bestTime > elapsedTime) {
