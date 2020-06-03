@@ -32,9 +32,10 @@ public class GameManager : MonoBehaviour {
     private float slowmoStartMarker;
     private float elapsedTime;
     private float levelStartTime;
+    private bool kongApiInitialized;
 
 	// Use this for initialization
-	void Start () {
+	void Start() {
         /* Commenting this out while I'm not building levels
         // Make sure we didn't leave a level up
         foreach (Base bas in FindObjectsOfType<Base>()) {
@@ -63,14 +64,12 @@ public class GameManager : MonoBehaviour {
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
+
+        RegisterAPI();
     }
 
     // Update is called once per frame
-    private int dbg = 0;
 	void Update () {
-        if (dbg++ % 60 == 0) {
-            Debug.Log(elapsedTime);
-        }
         if (playing) {
             HandleTimeScale();
             CheckVictory();
@@ -115,6 +114,12 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+        levelIndex++;
+        PlayerPrefs.SetInt("level", levelIndex);
+        if (PlayerPrefs.GetInt("maxLevel") < levelIndex) {
+            PlayerPrefs.SetInt("maxLevel", levelIndex);
+        }
+
         themeSong.SetActive(true);
         if (elapsedTime != -1) {
             elapsedTime += Time.realtimeSinceStartup - levelStartTime;
@@ -122,6 +127,10 @@ public class GameManager : MonoBehaviour {
         }
         if (levelIndex == levels.Length - 1) {
             finalVictoryScreenUI.SetActive(true);
+            int bestTime = PlayerPrefs.GetInt("bestComplete");
+            if (bestTime == 0 || bestTime > elapsedTime) {
+                PlayerPrefs.SetInt("bestComplete", Mathf.CeilToInt(elapsedTime));
+            }
         } else {
             victoryScreenUI.SetActive(true);
         }
@@ -129,6 +138,9 @@ public class GameManager : MonoBehaviour {
         playing = false;
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f;
+
+        ReportCompletionTime();
+        ReportLevelsCompleted();
     }
 
     private void CheckDefeat() {
@@ -186,11 +198,6 @@ public class GameManager : MonoBehaviour {
     }
 
     public void NextLevel() {
-        levelIndex++;
-        PlayerPrefs.SetInt("level", levelIndex);
-        if (PlayerPrefs.GetInt("maxLevel") < levelIndex) {
-            PlayerPrefs.SetInt("maxLevel", levelIndex);
-        }
         RestartLevel();
     }
 
@@ -238,5 +245,35 @@ public class GameManager : MonoBehaviour {
 
     public void FactionsEvolvedSignup() {
         Application.ExternalEval("window.open(\"https://www.factionsevolvedgame.com\")");
+    }
+
+    ////////////////////
+    //  KONGREGATE STATS METHODS
+    ////////////////////
+    private void ReportLevelsCompleted() {
+        if (kongApiInitialized) {
+            Application.ExternalCall("kongregate.stats.submit", "Levels Completed", PlayerPrefs.GetInt("maxLevel"));
+        }
+    }
+
+    private void ReportCompletionTime() {
+        if (kongApiInitialized && PlayerPrefs.GetInt("bestComplete") > 0) {
+            Application.ExternalCall("kongregate.stats.submit", "Completion Time", PlayerPrefs.GetInt("bestComplete"));
+        }
+    }
+
+    private void RegisterAPI() {
+        Application.ExternalEval(
+          @"if(typeof(kongregateUnitySupport) != 'undefined'){
+            kongregateUnitySupport.initAPI('GameManager', 'ApiRegisteredCallback');
+          };"
+        );
+    }
+
+    private void ApiRegisteredCallback(string userInfo) {
+        kongApiInitialized = true;
+
+        ReportLevelsCompleted();
+        ReportCompletionTime();
     }
 }
