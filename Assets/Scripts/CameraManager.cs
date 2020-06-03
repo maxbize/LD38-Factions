@@ -67,10 +67,21 @@ public class CameraManager : MonoBehaviour {
             } else {
                 float horizontal = Input.GetAxisRaw("Horizontal");
                 float vertical = Input.GetAxisRaw("Vertical");
-                horizontal = horizontal != 0 ? horizontal : -dir.x * 2.5f;
-                vertical = vertical != 0 ? vertical : -dir.y * 2.5f;
-                dir.x = Mathf.Clamp(dir.x + horizontal * accel * Time.unscaledDeltaTime, -1, 1);
-                dir.y = Mathf.Clamp(dir.y + vertical * accel * Time.unscaledDeltaTime, -1, 1);
+
+                if (horizontal == 0) {
+                    float brake = -dir.x * 10f * Time.unscaledDeltaTime;
+                    dir.x = Mathf.Abs(brake) > Mathf.Abs(dir.x) ? 0 : dir.x + brake;
+                } else {
+                    dir.x = Mathf.Clamp(dir.x + horizontal * accel * Time.unscaledDeltaTime, -1, 1);
+                }
+
+                if (vertical == 0) {
+                    float brake = -dir.y * 10f * Time.unscaledDeltaTime;
+                    dir.y = Mathf.Abs(brake) > Mathf.Abs(dir.y) ? 0 : dir.y + brake;
+                } else {
+                    dir.y = Mathf.Clamp(dir.y + vertical * accel * Time.unscaledDeltaTime, -1, 1);
+                }
+
                 Vector3 delta = transform.right * dir.x + transform.up * dir.y;
                 transform.position += delta * maxSpeed * Time.unscaledDeltaTime;
             }
