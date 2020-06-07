@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Choose web platform
+//#define KONG
+#define NEWGROUNDS
+//#define Y8
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +22,8 @@ public class GameManager : MonoBehaviour {
     public GameObject finalVictoryScreenUI;
     public GameObject instructionScreenUI;
     public Button continueGameButton;
+    public Text versionText;
+    public Text timerText;
     public AudioClip victoryClip;
     public AudioClip defeatClip;
     public GameObject themeSong;
@@ -32,10 +39,15 @@ public class GameManager : MonoBehaviour {
     private float slowmoStartMarker;
     private float elapsedTime;
     private float levelStartTime;
+#if KONG
     private bool kongApiInitialized;
+#elif NEWGROUNDS
+    private io.newgrounds.core ngio;
+    private bool ngioReady;
+#endif
 
-	// Use this for initialization
-	void Start() {
+    // Use this for initialization
+    void Start() {
         /* Commenting this out while I'm not building levels
         // Make sure we didn't leave a level up
         foreach (Base bas in FindObjectsOfType<Base>()) {
@@ -64,12 +76,21 @@ public class GameManager : MonoBehaviour {
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
+        timerText.gameObject.SetActive(false);
 
-        RegisterAPI();
+#if KONG
+        KongRegisterAPI();
+        versionText.text = "v 1.08   Kongregate";
+#elif NEWGROUNDS
+        NgRegisterAPI();
+        versionText.text = "v 1.08   Newgrounds";
+#elif Y8
+        versionText.text = "v 1.08   Y8";
+#endif
     }
 
     // Update is called once per frame
-	void Update () {
+    void Update () {
         if (playing) {
             HandleTimeScale();
             CheckVictory();
@@ -78,6 +99,7 @@ public class GameManager : MonoBehaviour {
                 if (elapsedTime != -1) {
                     elapsedTime += Time.realtimeSinceStartup - levelStartTime;
                     PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+                    ActivateTimerText();
                 }
 
                 RestartLevel();
@@ -124,6 +146,7 @@ public class GameManager : MonoBehaviour {
         if (elapsedTime != -1) {
             elapsedTime += Time.realtimeSinceStartup - levelStartTime;
             PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+            ActivateTimerText();
         }
         if (levelIndex == levels.Length) {
             finalVictoryScreenUI.SetActive(true);
@@ -139,8 +162,13 @@ public class GameManager : MonoBehaviour {
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f;
 
-        ReportCompletionTime();
-        ReportLevelsCompleted();
+#if KONG
+        KongReportCompletionTime();
+        KongReportLevelsCompleted();
+#elif NEWGROUNDS
+        NgReportCompletionTime();
+        NgReportLevelsCompleted();
+#endif
     }
 
     private void CheckDefeat() {
@@ -153,12 +181,20 @@ public class GameManager : MonoBehaviour {
         if (elapsedTime != -1) {
             elapsedTime += Time.realtimeSinceStartup - levelStartTime;
             PlayerPrefs.SetInt("elapsed", Mathf.CeilToInt(elapsedTime));
+            ActivateTimerText();
         }
         defeatScreenUI.SetActive(true);
         audioSource.PlayOneShot(defeatClip);
         playing = false;
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f;
+    }
+
+    // Enable and update text
+    private void ActivateTimerText() {
+        timerText.gameObject.SetActive(true);
+        TimeSpan t = TimeSpan.FromSeconds(elapsedTime);
+        timerText.text = t.ToString(elapsedTime >= 3600 ? @"hh\:mm\:ss\.f" : @"mm\:ss\.f").Replace(":", "<b>:</b>");
     }
 
     public Material GetPlayerSharedMat(PlayerNum playerNum) {
@@ -228,6 +264,7 @@ public class GameManager : MonoBehaviour {
         startScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
+        timerText.gameObject.SetActive(false);
 
         levelText.DisplayText(levelIndex + 1, levels[levelIndex].gameObject.name);
         levelStartTime = Time.realtimeSinceStartup;
@@ -247,22 +284,23 @@ public class GameManager : MonoBehaviour {
         Application.ExternalEval("window.open(\"https://www.factionsevolvedgame.com\")");
     }
 
+#if KONG
     ////////////////////
     //  KONGREGATE STATS METHODS
     ////////////////////
-    private void ReportLevelsCompleted() {
+    private void KongReportLevelsCompleted() {
         if (kongApiInitialized) {
             Application.ExternalCall("kongregate.stats.submit", "Levels Completed", PlayerPrefs.GetInt("maxLevel"));
         }
     }
 
-    private void ReportCompletionTime() {
+    private void KongReportCompletionTime() {
         if (kongApiInitialized && PlayerPrefs.GetInt("bestComplete") > 0) {
             Application.ExternalCall("kongregate.stats.submit", "Completion Time", PlayerPrefs.GetInt("bestComplete"));
         }
     }
 
-    private void RegisterAPI() {
+    private void KongRegisterAPI() {
         Application.ExternalEval(
           @"if(typeof(kongregateUnitySupport) != 'undefined'){
             kongregateUnitySupport.initAPI('GameManager', 'ApiRegisteredCallback');
@@ -270,10 +308,81 @@ public class GameManager : MonoBehaviour {
         );
     }
 
-    private void ApiRegisteredCallback(string userInfo) {
+    private void KongApiRegisteredCallback(string userInfo) {
         kongApiInitialized = true;
 
-        ReportLevelsCompleted();
-        ReportCompletionTime();
+        KongReportLevelsCompleted();
+        KongReportCompletionTime();
     }
+
+#elif NEWGROUNDS
+    ////////////////////
+    //  NEWGROUNDS STATS METHODS
+    ////////////////////
+    private void NgRegisterAPI() {
+        GameObject ngioObj = new GameObject("Newgrounds IO");
+        ngio = ngioObj.AddComponent<io.newgrounds.core>();
+        ngio.app_id = "50429:7gkqTTnQ";
+        ngio.aes_base64_key = "lXZKjQui8a/LZ3YVG5+jGw==";
+        ngio.onReady(NgOnReady);
+    }
+
+    private void NgOnReady() {
+        Debug.Log("NG IO ready");
+        ngioReady = true;
+
+        NgReportCompletionTime();
+        NgReportLevelsCompleted();
+    }
+
+    private void NgReportLevelsCompleted() {
+        if (ngioReady) {
+            int maxLevel = PlayerPrefs.GetInt("maxLevel");
+            if (maxLevel >= 1) {
+                NgUnlockMedal(59724);
+            }
+            if (maxLevel >= 6) {
+                NgUnlockMedal(59725);
+            }
+            if (maxLevel >= 12) {
+                NgUnlockMedal(59726);
+            }
+        }
+    }
+
+    private void NgReportCompletionTime() {
+        int bestComplete = PlayerPrefs.GetInt("bestComplete");
+        if (ngioReady && bestComplete > 0) {
+            if (bestComplete <= 600) {
+                NgUnlockMedal(59727);
+            }
+            NgSubmitStat(9088, bestComplete * 1000); // convert to ms
+        }
+    }
+
+    private void NgUnlockMedal(int id) {
+        io.newgrounds.components.Medal.unlock unlock = new io.newgrounds.components.Medal.unlock();
+        unlock.id = id;
+        //unlock.callWith(ngio, NgUnlockMedalCallback);
+        unlock.callWith(ngio, NgUnlockMedalCallback);
+    }
+
+    private void NgUnlockMedalCallback(io.newgrounds.results.Medal.unlock result) {
+        io.newgrounds.objects.medal medal = result.medal;
+        Debug.LogFormat("Unlocked medal '{0}' - {1} points", medal.name, medal.value);
+    }
+
+    private void NgSubmitStat(int id, int stat) {
+        io.newgrounds.components.ScoreBoard.postScore post = new io.newgrounds.components.ScoreBoard.postScore();
+        post.id = 9088;
+        post.value = stat;
+        post.callWith(ngio, NgSubmitStatCallback);
+    }
+
+    private void NgSubmitStatCallback(io.newgrounds.results.ScoreBoard.postScore result) {
+        io.newgrounds.objects.score score = result.score;
+        Debug.LogFormat("Submitted stat with value {0}", score.value);
+    }
+
+#endif
 }
