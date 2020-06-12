@@ -34,4 +34,10 @@ public class LevelText : MonoBehaviour {
         levelText.text = "Level " + level;
         levelSubText.text = subText;
     }
+
+    public void EndDisplay() {
+        elapsed = duration;
+        float x = curve.Evaluate(elapsed / duration);
+        textRect.anchoredPosition = new Vector2(x, textRect.anchoredPosition.y);
+    }
 }

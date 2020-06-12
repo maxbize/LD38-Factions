@@ -15,12 +15,15 @@ public class GameManager : MonoBehaviour {
     public Material playerMat;
     public PlayerNum humanPlayer;
     public GameObject[] levels;
-    public static bool playing = false; // Out of time - global state!
     public GameObject startScreenUI;
     public GameObject victoryScreenUI;
     public GameObject defeatScreenUI;
     public GameObject finalVictoryScreenUI;
     public GameObject instructionScreenUI;
+    public GameObject settingsScreenUI;
+    public GameObject settingsButtonUI;
+    public Toggle graphicsToggle;
+    public Toggle cameraToggle;
     public Button continueGameButton;
     public Text versionText;
     public Text timerText;
@@ -28,6 +31,14 @@ public class GameManager : MonoBehaviour {
     public AudioClip defeatClip;
     public GameObject themeSong;
     public float slowDownTime;
+
+    public enum GameState
+    {
+        Menu,
+        InGamePaused,
+        InGamePlaying
+    }
+    public GameState gameState { get; private set; }
 
     private GameObject currentLevel;
     private int levelIndex;
@@ -72,26 +83,36 @@ public class GameManager : MonoBehaviour {
         levelText = FindObjectOfType<LevelText>();
         cam = FindObjectOfType<CameraManager>();
 
+        // Settings
+        int graphics = PlayerPrefs.GetInt("Quality", 3);
+        graphicsToggle.isOn = graphics == 0;
+        QualitySettings.SetQualityLevel(graphics);
+        bool inverse = PlayerPrefs.GetInt("Inverse", 0) == 1;
+        cameraToggle.isOn = inverse;
+        cam.invertDir = inverse;
+
         startScreenUI.SetActive(true);
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
         timerText.gameObject.SetActive(false);
+        settingsScreenUI.SetActive(false);
+        settingsButtonUI.SetActive(false);
 
 #if KONG
         KongRegisterAPI();
-        versionText.text = "v 1.08   Kongregate";
+        versionText.text = "v 1.09   Kongregate";
 #elif NEWGROUNDS
         NgRegisterAPI();
-        versionText.text = "v 1.08   Newgrounds";
+        versionText.text = "v 1.09   Newgrounds";
 #elif Y8
-        versionText.text = "v 1.08   Y8";
+        versionText.text = "v 1.09   Y8";
 #endif
     }
 
     // Update is called once per frame
     void Update () {
-        if (playing) {
+        if (gameState == GameState.InGamePlaying) {
             HandleTimeScale();
             CheckVictory();
             CheckDefeat();
@@ -158,7 +179,7 @@ public class GameManager : MonoBehaviour {
             victoryScreenUI.SetActive(true);
         }
         audioSource.PlayOneShot(victoryClip);
-        playing = false;
+        gameState = GameState.InGamePaused;
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f;
 
@@ -185,7 +206,7 @@ public class GameManager : MonoBehaviour {
         }
         defeatScreenUI.SetActive(true);
         audioSource.PlayOneShot(defeatClip);
-        playing = false;
+        gameState = GameState.InGamePaused;
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f;
     }
@@ -224,6 +245,7 @@ public class GameManager : MonoBehaviour {
     ////////////////////
     public void StartGame() {
         elapsedTime = 0;
+        levelIndex = 0;
         RestartLevel();
     }
 
@@ -259,12 +281,14 @@ public class GameManager : MonoBehaviour {
         }
 
         // Other state
-        playing = true;
+        gameState = GameState.InGamePlaying;
         themeSong.SetActive(false);
         startScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
         timerText.gameObject.SetActive(false);
+        settingsScreenUI.SetActive(false);
+        settingsButtonUI.SetActive(true);
 
         levelText.DisplayText(levelIndex + 1, levels[levelIndex].gameObject.name);
         levelStartTime = Time.realtimeSinceStartup;
@@ -276,12 +300,60 @@ public class GameManager : MonoBehaviour {
     }
 
     public void HideInstructions() {
-        startScreenUI.SetActive(true);
+        if (gameState == GameState.Menu) {
+            startScreenUI.SetActive(true);
+        }
         instructionScreenUI.SetActive(false);
     }
 
     public void FactionsEvolvedSignup() {
         Application.ExternalEval("window.open(\"https://www.factionsevolvedgame.com\")");
+    }
+
+    public void ToggleQuality(bool enabled) {
+        Debug.Log("Toggle quality " + enabled);
+        int quality = enabled ? 0 : 3;
+        QualitySettings.SetQualityLevel(quality);
+        PlayerPrefs.SetInt("Quality", quality);
+    }
+
+    public void ToggleCameraInverse(bool enabled) {
+        Debug.Log("Toggle inverse " + enabled);
+        cam.invertDir = enabled;
+        PlayerPrefs.SetInt("Inverse", enabled ? 1 : 0);
+    }
+
+    public void ShowSettings() {
+        settingsScreenUI.SetActive(true);
+        gameState = GameState.InGamePaused;
+        Time.timeScale = 0;
+    }
+
+    public void HideSettings() {
+        settingsScreenUI.SetActive(false);
+        gameState = GameState.InGamePlaying;
+    }
+
+    public void ReturnToMenu() {
+        // Reset UI state
+        startScreenUI.SetActive(true);
+        instructionScreenUI.SetActive(false);
+        victoryScreenUI.SetActive(false);
+        defeatScreenUI.SetActive(false);
+        timerText.gameObject.SetActive(false);
+        settingsScreenUI.SetActive(false);
+        settingsButtonUI.SetActive(false);
+
+        // Clear existing level
+        foreach (Pawn pawn in FindObjectsOfType<Pawn>()) {
+            Destroy(pawn.gameObject);
+        }
+        Destroy(currentLevel);
+
+        // Other state
+        gameState = GameState.Menu;
+        Time.timeScale = 1;
+        levelText.EndDisplay();
     }
 
 #if KONG

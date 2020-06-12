@@ -33,7 +33,7 @@ public class InputManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (!GameManager.playing) {
+        if (gameManager.gameState != GameManager.GameState.InGamePlaying) {
             selectedPawns.Clear();
             UpdateSelector(Vector2.zero, Vector2.zero);
             return;

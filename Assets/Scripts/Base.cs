@@ -37,7 +37,7 @@ public class Base : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (GameManager.playing) {
+        if (gameManager.gameState == GameManager.GameState.InGamePlaying) {
             HandleCapturing();
             HandleSpawning();
             UpdateCaptureBar();

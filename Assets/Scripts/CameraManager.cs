@@ -10,8 +10,12 @@ public class CameraManager : MonoBehaviour {
     public float accel;
     public float mouseAccel;
 
+    [HideInInspector]
+    public bool invertDir;
+
     private const int NUM_DELTAS = 2;
 
+    private GameManager gameManager;
     private Planet planet;
     private Vector2 dir;
     private Vector2 lastMousePos;
@@ -20,6 +24,7 @@ public class CameraManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
         lastMouseDeltas = new List<Vector2>(NUM_DELTAS);
         for (int i = 0; i < NUM_DELTAS; i++) {
@@ -34,7 +39,9 @@ public class CameraManager : MonoBehaviour {
 	}
 
     private void HandleInput() {
-        if (GameManager.playing) {
+        if (Time.timeScale == 0) {
+            return;
+        } else if (gameManager.gameState == GameManager.GameState.InGamePlaying) {
             if (Input.GetMouseButton(2)) {
                 if (Input.GetMouseButtonDown(2)) {
                     dir = Vector2.zero;
@@ -44,7 +51,7 @@ public class CameraManager : MonoBehaviour {
                     }
                 }
                 Vector2 mousePos = Input.mousePosition;
-                Vector2 mouseDelta = lastMousePos - mousePos;
+                Vector2 mouseDelta = (lastMousePos - mousePos) * (invertDir ? -1 : 1);
                 Vector3 delta = transform.right * mouseDelta.x * mouseAccel + transform.up * mouseDelta.y * mouseAccel;
                 transform.position += delta;
 
@@ -65,8 +72,8 @@ public class CameraManager : MonoBehaviour {
                     dir /= Mathf.Abs(dir.y);
                 }
             } else {
-                float horizontal = Input.GetAxisRaw("Horizontal");
-                float vertical = Input.GetAxisRaw("Vertical");
+                float horizontal = Input.GetAxisRaw("Horizontal") * (invertDir ? -1 : 1);
+                float vertical = Input.GetAxisRaw("Vertical") * (invertDir ? -1 : 1);
 
                 if (horizontal == 0) {
                     float brake = -dir.x * 10f * Time.unscaledDeltaTime;
