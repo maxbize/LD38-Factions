@@ -1,6 +1,6 @@
 ﻿// Choose web platform
-//#define KONG
-#define NEWGROUNDS
+#define KONG
+//#define NEWGROUNDS
 //#define Y8
 
 using System;
@@ -94,6 +94,7 @@ public class GameManager : MonoBehaviour {
         startScreenUI.SetActive(true);
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
+        finalVictoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
         timerText.gameObject.SetActive(false);
         settingsScreenUI.SetActive(false);
@@ -251,7 +252,7 @@ public class GameManager : MonoBehaviour {
 
     public void ContinueGame() {
         elapsedTime = PlayerPrefs.GetInt("elapsed", -1);
-        levelIndex = PlayerPrefs.GetInt("level");
+        levelIndex = Mathf.Min(11, PlayerPrefs.GetInt("level"));
         RestartLevel();
     }
 
@@ -331,7 +332,10 @@ public class GameManager : MonoBehaviour {
 
     public void HideSettings() {
         settingsScreenUI.SetActive(false);
-        gameState = GameState.InGamePlaying;
+        if (!victoryScreenUI.activeSelf && !defeatScreenUI.activeSelf && !finalVictoryScreenUI.activeSelf) {
+            gameState = GameState.InGamePlaying;
+        }
+        Time.timeScale = 1;
     }
 
     public void ReturnToMenu() {
@@ -339,6 +343,7 @@ public class GameManager : MonoBehaviour {
         startScreenUI.SetActive(true);
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
+        finalVictoryScreenUI.SetActive(false);
         defeatScreenUI.SetActive(false);
         timerText.gameObject.SetActive(false);
         settingsScreenUI.SetActive(false);
@@ -354,6 +359,7 @@ public class GameManager : MonoBehaviour {
         gameState = GameState.Menu;
         Time.timeScale = 1;
         levelText.EndDisplay();
+        themeSong.SetActive(true);
     }
 
 #if KONG
