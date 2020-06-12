@@ -47,7 +47,7 @@ public class InputManager : MonoBehaviour {
             UpdateSelector(Vector2.zero, Vector2.zero);
         } else if (Input.GetMouseButton(LEFT_CLICK) && startPoint != Vector2.zero) {
             UpdateSelector(startPoint, Input.mousePosition);
-        } else if (Input.GetMouseButtonDown(RIGHT_CLICK) && selectedPawns.Count > 0) {
+        } else if ((Input.GetMouseButtonDown(RIGHT_CLICK) || Input.GetKeyDown(KeyCode.E)) && selectedPawns.Count > 0) {
             Vector3 targetPosition;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
