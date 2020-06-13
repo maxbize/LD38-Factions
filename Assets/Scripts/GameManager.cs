@@ -381,7 +381,7 @@ public class GameManager : MonoBehaviour {
     private void KongRegisterAPI() {
         Application.ExternalEval(
           @"if(typeof(kongregateUnitySupport) != 'undefined'){
-            kongregateUnitySupport.initAPI('GameManager', 'ApiRegisteredCallback');
+            kongregateUnitySupport.initAPI('GameManager', 'KongApiRegisteredCallback');
           };"
         );
     }
