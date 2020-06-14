@@ -25,8 +25,8 @@ public class Base : MonoBehaviour {
     private GameManager gameManager;
     private AudioSource audioSource;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         gameManager = FindObjectOfType<GameManager>();
         planet = FindObjectOfType<Planet>();
         SnapToPlanet();
@@ -52,9 +52,6 @@ public class Base : MonoBehaviour {
         foreach (Collider coll in allPawns) {
             Pawn pawn = coll.GetComponent<Pawn>();
             if (pawn == null) {
-                continue;
-            }
-            if (Vector3.Distance(pawn.transform.position, transform.position) > captureRange) {
                 continue;
             }
             if (!pawnsInRange.ContainsKey(pawn.owner)) {

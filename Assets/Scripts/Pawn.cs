@@ -31,6 +31,8 @@ public class Pawn : MonoBehaviour {
     private float _height;
     private float spawnTime;
     private float audioPitch;
+    private int frameIndex;
+    private int updateFrame;
 
 	// Use this for initialization
 	void Start () {
@@ -38,19 +40,26 @@ public class Pawn : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
         spawnTime = Time.timeSinceLevelLoad;
+        updateFrame = Random.Range(0, 4);
     }
 
 	// Update is called once per frame
 	void Update () {
         float t = Mathf.Clamp01((Time.timeSinceLevelLoad - spawnTime) / dropTime);
         _height = heightCurve.Evaluate(t) * 30 + height;
-
-        HandleAttacking();
-        SnapToPlanet();
         audioSource.pitch = audioPitch * Mathf.Lerp(0.25f, 1, Time.timeScale);
 
+        attackTimer += Time.deltaTime;
+
+        // Space out the updates as a hack to decrease CPU load :)
+        frameIndex = (frameIndex + 1) % 4;
+        if (frameIndex == updateFrame) {
+            HandleAttacking();
+        }
+        SnapToPlanet();
+
         //Debug.DrawRay(transform.position + transform.up * 1.2f + transform.right, -transform.right * 2 * ((float)healthRemaining / startingHealth), PlayerMethods.GetPlayerColor(owner));
-	}
+    }
 
     public void Init(PlayerNum owner, GameManager gameManager) {
         this.owner = owner;
@@ -135,7 +144,6 @@ public class Pawn : MonoBehaviour {
         }
         
         // Do the attack
-        attackTimer += Time.deltaTime;
         if (attackTimer > attackSpeed && attackingOpponent != null) {
             attackingOpponent.TakeDamage(damage, transform.position);
             attackTimer = 0;

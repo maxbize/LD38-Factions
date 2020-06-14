@@ -73,6 +73,11 @@ public class GameManager : MonoBehaviour {
         }
         */
 
+        // Transforms are manually moved every frame to snap to the planet. With auto-sync, they
+        //  are synced to the Physics engine with every raycast/overlap. Since we're barely moving
+        //  every frame, it's OK to turn this off - sync will happen once at the beginning of the frame
+        Physics.autoSyncTransforms = false;
+
         int savedIndex = PlayerPrefs.GetInt("level");
         if (savedIndex == 0) {
             continueGameButton.interactable = false;

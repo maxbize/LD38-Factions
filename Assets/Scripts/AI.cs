@@ -23,8 +23,10 @@ public class AI : MonoBehaviour
     private List<Base> freeBases = new List<Base>();
 
     private HashSet<Pawn> myPawns = new HashSet<Pawn>();
-    private Dictionary<Pawn, Base> pawnTargets = new Dictionary<Pawn, Base>();
     private GameManager gameManager;
+    private Array allNums;
+    private int frameIndex;
+    private int updateFrame;
 
     // In-order list of prioritized bases to target, with the ideal number of units per target
     private List<KeyValuePair<Base, int>> idealTargets = new List<KeyValuePair<Base, int>>();
@@ -32,13 +34,22 @@ public class AI : MonoBehaviour
     // Use this for initialization
     void Start() {
         gameManager = FindObjectOfType<GameManager>();
+
+        // Reflection is surprisingly expensive. Cache this
+        allNums = Enum.GetValues(typeof(PlayerNum));
+
+        updateFrame = (int)playerNumber - 1; // Null is 0
     }
 
     // Update is called once per frame
     void Update() {
-        UpdateWorldState();
-        ChooseTargets();
-        DistributePawns();
+        // Space out the updates as a hack to decrease CPU load :)
+        frameIndex = (frameIndex + 1) % 4;
+        if (frameIndex == updateFrame) {
+            UpdateWorldState();
+            ChooseTargets();
+            DistributePawns();
+        }
     }
 
     // Update the AI's understanding of the world
@@ -75,7 +86,7 @@ public class AI : MonoBehaviour
             }
             int numFriendlies = bas.pawnsInRange.ContainsKey(playerNumber) ? bas.pawnsInRange[playerNumber].Count : 0;
             int numEnemies = 0;
-            foreach (PlayerNum num in Enum.GetValues(typeof(PlayerNum))) {
+            foreach (PlayerNum num in allNums) {
                 if (num != playerNumber && bas.pawnsInRange.ContainsKey(num)) {
                     numEnemies += bas.pawnsInRange[num].Count;
                 }
