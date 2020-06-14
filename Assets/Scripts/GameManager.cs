@@ -105,14 +105,15 @@ public class GameManager : MonoBehaviour {
         settingsScreenUI.SetActive(false);
         settingsButtonUI.SetActive(false);
 
+        string version = "v 1.10   ";
 #if KONG
         KongRegisterAPI();
-        versionText.text = "v 1.09   Kongregate";
+        versionText.text = version + "Kongregate";
 #elif NEWGROUNDS
         NgRegisterAPI();
-        versionText.text = "v 1.09   Newgrounds";
+        versionText.text = version + "Newgrounds";
 #elif Y8
-        versionText.text = "v 1.09   Y8";
+        versionText.text = version + "Y8";
 #endif
     }
 
