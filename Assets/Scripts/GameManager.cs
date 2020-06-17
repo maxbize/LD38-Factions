@@ -1,7 +1,10 @@
 ﻿// Choose web platform
-#define KONG
+//#define KONG
 //#define NEWGROUNDS
-//#define Y8
+//#define ARMORGAMES
+//#define CRAZYGAMES
+//#define MINICLIP
+#define ITCH
 
 using System;
 using System.Collections;
@@ -112,8 +115,14 @@ public class GameManager : MonoBehaviour {
 #elif NEWGROUNDS
         NgRegisterAPI();
         versionText.text = version + "Newgrounds";
-#elif Y8
-        versionText.text = version + "Y8";
+#elif ARMORGAMES
+        versionText.text = version + "Armor Games";
+#elif CRAZYGAMES
+        versionText.text = version + "Crazy Games";
+#elif MINICLIP
+        versionText.text = version + "Miniclip";
+#elif ITCH
+        versionText.text = version + "itch.io";
 #endif
     }
 
