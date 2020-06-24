@@ -4,7 +4,8 @@
 //#define ARMORGAMES
 //#define CRAZYGAMES
 //#define MINICLIP
-#define ITCH
+//#define ITCH
+#define GAMEJOLT
 
 using System;
 using System.Collections;
@@ -123,6 +124,8 @@ public class GameManager : MonoBehaviour {
         versionText.text = version + "Miniclip";
 #elif ITCH
         versionText.text = version + "itch.io";
+#elif GAMEJOLT
+        versionText.text = version + "Game Jolt";
 #endif
     }
 
@@ -323,7 +326,11 @@ public class GameManager : MonoBehaviour {
     }
 
     public void FactionsEvolvedSignup() {
+#if UNITY_WEBGL
         Application.ExternalEval("window.open(\"https://www.factionsevolvedgame.com\")");
+#else
+        Application.OpenURL("https://www.factionsevolvedgame.com");
+#endif
     }
 
     public void ToggleQuality(bool enabled) {
