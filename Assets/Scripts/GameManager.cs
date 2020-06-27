@@ -465,6 +465,10 @@ public class GameManager : MonoBehaviour {
     }
 
     public void ShowSettings() {
+        if (gameState == GameState.Menu) {
+            return; // Setting up toggles at start can mess this up
+        }
+
         settingsScreenUI.SetActive(true);
         settingsPanel.gameObject.SetActive(true);
         colorPickerUI.SetActive(false);
