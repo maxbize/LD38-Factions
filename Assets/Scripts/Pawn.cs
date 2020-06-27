@@ -15,6 +15,7 @@ public class Pawn : MonoBehaviour {
     public int damage;
     public GameObject bloodPS;
     public GameObject ragdollPrefab;
+    public GameObject markerObj;
     public AnimationCurve heightCurve;
     public float dropTime;
 
@@ -33,6 +34,7 @@ public class Pawn : MonoBehaviour {
     private float audioPitch;
     private int frameIndex;
     private int updateFrame;
+    private GameManager gameManager;
 
 	// Use this for initialization
 	void Start () {
@@ -63,9 +65,11 @@ public class Pawn : MonoBehaviour {
 
     public void Init(PlayerNum owner, GameManager gameManager) {
         this.owner = owner;
-        SetColor(PlayerMethods.GetPlayerColor(owner), gameManager);
+        this.gameManager = gameManager;
+        SetMaterial(gameManager.GetPlayerSharedMat(owner));
         healthRemaining = startingHealth; // Need to do this here instead of start so that if someone hits us as we spawn we don't insta-die
-        
+        SetMarkers(gameManager.MarkersEnabled());
+
         // Ugly hack - could be cleaned up
         if (owner == PlayerNum.One) {
             targetingLayerMask = PlayerMethods.allButP1;
@@ -90,11 +94,11 @@ public class Pawn : MonoBehaviour {
     public void TakeDamage(int amount, Vector3 sourceLocation) {
         healthRemaining -= amount;
         ParticleSystem blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
-        blood.startColor = PlayerMethods.GetPlayerColor(owner);
+        blood.startColor = gameManager.GetPlayerColor(owner);
         if (healthRemaining < 0) {
             for (int i = 0; i < 2; i++) {
                 blood = Instantiate(bloodPS, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
-                blood.startColor = PlayerMethods.GetPlayerColor(owner);
+                blood.startColor = gameManager.GetPlayerColor(owner);
                 blood.gameObject.transform.localScale *= 2;
             }
 
@@ -113,10 +117,11 @@ public class Pawn : MonoBehaviour {
 
     }
 
-    public void SetColor(Color color, GameManager gameManager) {
-        foreach (Renderer renderer in GetComponentsInChildren<Renderer>()) {
-            renderer.sharedMaterial = gameManager.GetPlayerSharedMat(color);
-        }
+    public void SetMaterial(Material sharedMat) {
+        GetComponentInChildren<Renderer>().sharedMaterial = sharedMat;
+        //foreach (Renderer renderer in GetComponentsInChildren<Renderer>()) {
+        //    renderer.sharedMaterial = sharedMat;
+        //}
     }
 
     private void HandleAttacking() {
@@ -178,5 +183,11 @@ public class Pawn : MonoBehaviour {
     public void PlayAudio(AudioClip clip) {
         audioPitch = Random.Range(1.5f, 2.5f);
         audioSource.PlayOneShot(clip);
+    }
+
+    public void SetMarkers(bool enabled) {
+        if (owner == PlayerNum.One) {
+            markerObj.SetActive(enabled);
+        }
     }
 }

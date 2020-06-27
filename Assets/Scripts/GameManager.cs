@@ -1,13 +1,14 @@
 ﻿// Choose web platform
 //#define KONG
 //#define NEWGROUNDS
-//#define ARMORGAMES
+#define ARMORGAMES
 //#define CRAZYGAMES
 //#define MINICLIP
 //#define ITCH
-#define GAMEJOLT
+//#define GAMEJOLT
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,9 +26,16 @@ public class GameManager : MonoBehaviour {
     public GameObject finalVictoryScreenUI;
     public GameObject instructionScreenUI;
     public GameObject settingsScreenUI;
+    public RectTransform settingsPanel;
     public GameObject settingsButtonUI;
+    public GameObject colorPickerUI;
+    public List<Image> playerColorPickers;
+    public List<GameObject> colorblindOptions;
     public Toggle graphicsToggle;
     public Toggle cameraToggle;
+    public Toggle colorblindToggle;
+    public Toggle markersToggle;
+    public Slider saturationSlider;
     public Button continueGameButton;
     public Text versionText;
     public Text timerText;
@@ -46,7 +54,7 @@ public class GameManager : MonoBehaviour {
 
     private GameObject currentLevel;
     private int levelIndex;
-    private Dictionary<Color, Material> sharedMats = new Dictionary<Color, Material>();
+    private Dictionary<string, Material> sharedMats = new Dictionary<string, Material>();
     private Base[] allBases = new Base[0];
     private AudioSource audioSource;
     private LevelText levelText;
@@ -54,6 +62,10 @@ public class GameManager : MonoBehaviour {
     private float slowmoStartMarker;
     private float elapsedTime;
     private float levelStartTime;
+    private int colorPickerIndex;
+    private GameObject planet;
+    private List<GameObject> clouds;
+    private List<Color> originalEnvColors; // 0-3 = planet, 4 = clouds
 #if KONG
     private bool kongApiInitialized;
 #elif NEWGROUNDS
@@ -92,6 +104,28 @@ public class GameManager : MonoBehaviour {
         levelText = FindObjectOfType<LevelText>();
         cam = FindObjectOfType<CameraManager>();
 
+        // Shared Materials - Pawns
+        foreach (PlayerNum num in Enum.GetValues(typeof(PlayerNum))) {
+            Material sharedMat = new Material(playerMat);
+            sharedMat.color = GetPlayerColor(num);
+            sharedMat.enableInstancing = true;
+            sharedMats[num.ToString()] = sharedMat;
+        }
+        Material highlightSharedMat = new Material(playerMat);
+        highlightSharedMat.color = GetHighlightedColor();
+        highlightSharedMat.enableInstancing = true;
+        sharedMats["highlight"] = highlightSharedMat;
+
+        // Shared Materials - Environment
+        originalEnvColors = new List<Color>();
+        planet = FindObjectOfType<Planet>().gameObject;
+        clouds = FindObjectsOfType<Cloud>().Select(c => c.gameObject).ToList();
+        originalEnvColors.AddRange(planet.GetComponentInChildren<Renderer>().materials.Select(m => m.color));
+        Material cloudMat = clouds[0].GetComponentInChildren<Renderer>().material;
+        originalEnvColors.Add(cloudMat.color);
+        cloudMat.color = cloudMat.color; // Force the material to instance so that we can share the single instance
+        clouds.ForEach(c => c.GetComponentInChildren<Renderer>().sharedMaterial = cloudMat);
+
         // Settings
         int graphics = PlayerPrefs.GetInt("Quality", 3);
         graphicsToggle.isOn = graphics == 0;
@@ -99,7 +133,15 @@ public class GameManager : MonoBehaviour {
         bool inverse = PlayerPrefs.GetInt("Inverse", 0) == 1;
         cameraToggle.isOn = inverse;
         cam.invertDir = inverse;
+        colorblindToggle.isOn = PlayerPrefs.GetInt("colorblind", 0) == 1;
+        bool markers = PlayerPrefs.GetInt("markers", 0) == 1;
+        markersToggle.isOn = markers;
+        ToggleMarkers(markers);
+        float saturation = PlayerPrefs.GetFloat("saturation", 1);
+        saturationSlider.value = saturation;
+        SaturateColors(saturation);
 
+        // UI
         startScreenUI.SetActive(true);
         instructionScreenUI.SetActive(false);
         victoryScreenUI.SetActive(false);
@@ -109,7 +151,7 @@ public class GameManager : MonoBehaviour {
         settingsScreenUI.SetActive(false);
         settingsButtonUI.SetActive(false);
 
-        string version = "v 1.10   ";
+        string version = "v 1.11   ";
 #if KONG
         KongRegisterAPI();
         versionText.text = version + "Kongregate";
@@ -238,17 +280,21 @@ public class GameManager : MonoBehaviour {
     }
 
     public Material GetPlayerSharedMat(PlayerNum playerNum) {
-        return GetPlayerSharedMat(PlayerMethods.GetPlayerColor(playerNum));
+        return sharedMats[playerNum.ToString()];
     }
 
-    public Material GetPlayerSharedMat(Color color) {
-        if (!sharedMats.ContainsKey(color)) {
-            Material sharedMat = new Material(playerMat);
-            sharedMat.color = color;
-            sharedMat.enableInstancing = true;
-            sharedMats[color] = sharedMat;
+    public Material GetPlayerSharedMat(int pickerIndex) {
+        if (pickerIndex == 0) {
+            return sharedMats[PlayerNum.One.ToString()];
+        } else if (pickerIndex == 1) {
+            return GetHighlightedMaterial();
+        } else if (pickerIndex == 2) {
+            return sharedMats[PlayerNum.Two.ToString()];
+        } else if (pickerIndex == 3) {
+            return sharedMats[PlayerNum.Three.ToString()];
+        } else {
+            return sharedMats[PlayerNum.Four.ToString()];
         }
-        return sharedMats[color];
     }
 
     public Base[] GetAllBases() {
@@ -257,6 +303,77 @@ public class GameManager : MonoBehaviour {
 
     public Pawn[] GetAllPawns() {
         return FindObjectsOfType<Pawn>();
+    }
+
+    public Color GetPlayerColor(PlayerNum playerNum) {
+        if (playerNum == PlayerNum.One) {
+            return FromHex(PlayerPrefs.GetString("color0", "#B71C1C"));
+        } else if (playerNum == PlayerNum.Two) {
+            return FromHex(PlayerPrefs.GetString("color2", "#0D47A1"));
+        } else if (playerNum == PlayerNum.Three) {
+            return FromHex(PlayerPrefs.GetString("color3", "#1B5E20"));
+        } else if (playerNum == PlayerNum.Four) {
+            return FromHex(PlayerPrefs.GetString("color4", "#F57F17"));
+        } else {
+            return FromHex(0xFAFAFA);
+        }
+    }
+
+    private Color GetPlayerColor(int pickerIndex) {
+        if (pickerIndex == 0) {
+            return GetPlayerColor(PlayerNum.One);
+        } else if (pickerIndex == 1) {
+            return GetHighlightedColor();
+        } else if (pickerIndex == 2) {
+            return GetPlayerColor(PlayerNum.Two);
+        } else if (pickerIndex == 3) {
+            return GetPlayerColor(PlayerNum.Three);
+        } else {
+            return GetPlayerColor(PlayerNum.Four);
+        }
+    }
+
+    public Material GetHighlightedMaterial() {
+        return sharedMats["highlight"];
+    }
+
+    public Color GetHighlightedColor() {
+        return FromHex(PlayerPrefs.GetString("color1", "#FF00FF"));
+    }
+
+    public static Color FromHex(int hex) {
+        return new Color(
+            ((hex & 0xFF0000) >> 16) / (float)0xFF,
+            ((hex & 0x00FF00) >> 8) / (float)0xFF,
+            ((hex & 0x0000FF) >> 0) / (float)0xFF
+            );
+    }
+
+    public static Color FromHex(string hex) {
+        Color color = new Color();
+        if (!ColorUtility.TryParseHtmlString(hex, out color)) {
+            Debug.LogWarning("Could not parse hex to color: " + hex);
+        }
+        return color;
+    }
+
+    public void SaturateColors(float saturation) {
+        // planet
+        Material[] planetMats = planet.GetComponentInChildren<Renderer>().materials;
+        for (int i = 0; i < planetMats.Length; i++) {
+            Color originalColor = originalEnvColors[i];
+            Color.RGBToHSV(originalColor, out float h, out float s, out float v);
+            planetMats[i].color = Color.HSVToRGB(h, s * saturation, v);
+        }
+
+        // clouds
+        Color originalCloudColor = originalEnvColors.Last();
+        Color.RGBToHSV(originalCloudColor, out float h2, out float s2, out float v2);
+        clouds[0].GetComponentInChildren<Renderer>().sharedMaterial.color = Color.HSVToRGB(h2, s2 * saturation, v2);
+    }
+
+    public bool MarkersEnabled() {
+        return PlayerPrefs.GetInt("markers", 0) == 1;
     }
 
     ////////////////////
@@ -315,6 +432,7 @@ public class GameManager : MonoBehaviour {
 
     public void ShowInstructions() {
         instructionScreenUI.SetActive(true);
+        settingsPanel.gameObject.SetActive(false);
         startScreenUI.SetActive(false);
     }
 
@@ -323,6 +441,7 @@ public class GameManager : MonoBehaviour {
             startScreenUI.SetActive(true);
         }
         instructionScreenUI.SetActive(false);
+        settingsPanel.gameObject.SetActive(true);
     }
 
     public void FactionsEvolvedSignup() {
@@ -334,7 +453,6 @@ public class GameManager : MonoBehaviour {
     }
 
     public void ToggleQuality(bool enabled) {
-        Debug.Log("Toggle quality " + enabled);
         int quality = enabled ? 0 : 3;
         QualitySettings.SetQualityLevel(quality);
         PlayerPrefs.SetInt("Quality", quality);
@@ -348,16 +466,30 @@ public class GameManager : MonoBehaviour {
 
     public void ShowSettings() {
         settingsScreenUI.SetActive(true);
+        settingsPanel.gameObject.SetActive(true);
+        colorPickerUI.SetActive(false);
+        bool colorblind = PlayerPrefs.GetInt("colorblind") == 1;
+        foreach (GameObject go in colorblindOptions) {
+            go.SetActive(colorblind);
+        }
+        for (int i = 0; i < playerColorPickers.Count; i++) {
+            playerColorPickers[i].color = GetPlayerColor(i);
+        }
+        settingsPanel.sizeDelta = new Vector2(550, colorblind ? 700 : 360);
         gameState = GameState.InGamePaused;
         Time.timeScale = 0;
     }
 
     public void HideSettings() {
-        settingsScreenUI.SetActive(false);
-        if (!victoryScreenUI.activeSelf && !defeatScreenUI.activeSelf && !finalVictoryScreenUI.activeSelf) {
-            gameState = GameState.InGamePlaying;
+        if (colorPickerUI.activeSelf) {
+            ShowSettings();
+        } else {
+            settingsScreenUI.SetActive(false);
+            if (!victoryScreenUI.activeSelf && !defeatScreenUI.activeSelf && !finalVictoryScreenUI.activeSelf) {
+                gameState = GameState.InGamePlaying;
+            }
+            Time.timeScale = 1;
         }
-        Time.timeScale = 1;
     }
 
     public void ReturnToMenu() {
@@ -382,7 +514,45 @@ public class GameManager : MonoBehaviour {
         Time.timeScale = 1;
         levelText.EndDisplay();
         themeSong.SetActive(true);
+
+        int savedIndex = PlayerPrefs.GetInt("level");
+        if (savedIndex == 0) {
+            continueGameButton.interactable = false;
+            continueGameButton.GetComponentInChildren<Text>().color = new Color(0.8f, 0.8f, 0.8f, 0.5f);
+        } else {
+            continueGameButton.interactable = true;
+            continueGameButton.GetComponentInChildren<Text>().color = new Color(1f, 1f, 1f, 1f);
+        }
     }
+
+    // Accessability UI. Doesn't belong here but whatever, this game is almost done :)
+    public void ToggleColorblind(bool enabled) {
+        PlayerPrefs.SetInt("colorblind", enabled ? 1 : 0);
+        ShowSettings();
+    }
+
+    public void ToggleMarkers(bool enabled) {
+        PlayerPrefs.SetInt("markers", enabled ? 1 : 0);
+        Array.ForEach(GetAllPawns(), p => p.SetMarkers(enabled));
+    }
+
+    public void OpenColorPicker(int playerIndex) {
+        colorPickerIndex = playerIndex;
+        settingsPanel.gameObject.SetActive(false);
+        colorPickerUI.SetActive(true);
+        colorPickerUI.GetComponent<ColorPicker>().CurrentColor = GetPlayerColor(playerIndex);
+    }
+
+    public void SetPlayerColor(Color color) {
+        GetPlayerSharedMat(colorPickerIndex).color = color;
+        PlayerPrefs.SetString("color" + colorPickerIndex, "#" + ColorUtility.ToHtmlStringRGB(color));
+    }
+
+    public void SetWorldSaturation(float amount) {
+        PlayerPrefs.SetFloat("saturation", amount);
+        SaturateColors(amount);
+    }
+
 
 #if KONG
     ////////////////////

@@ -67,43 +67,10 @@ public class InputManager : MonoBehaviour {
                 }
             }
             Vector3 targetToPlanet = planet.transform.position - targetPosition;
-            Instantiate(markerPrefab, targetPosition - targetToPlanet * 0.05f, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, targetToPlanet), targetToPlanet));
+            GameObject marker = Instantiate(markerPrefab, targetPosition - targetToPlanet * 0.05f, Quaternion.LookRotation(Vector3.ProjectOnPlane(Vector3.one, targetToPlanet), targetToPlanet));
+            marker.GetComponent<Renderer>().sharedMaterial = gameManager.GetPlayerSharedMat(PlayerNum.One);
         }
 	}
-
-
-    // Could be cleaned up by using a OverlapBox instead of converting everything to screen space and then filtering out unwanted results
-    private void SelectUnits(Vector2 cornerOne, Vector2 cornerTwo) {
-        Vector3 toPlanet = planet.transform.position - transform.position;
-        Vector3 cornerOneV3 = Camera.main.ScreenToWorldPoint((Vector3)cornerOne + Vector3.forward * toPlanet.magnitude);
-        Vector3 cornerTwoV3 = Camera.main.ScreenToWorldPoint((Vector3)cornerTwo + Vector3.forward * toPlanet.magnitude);
-        Vector3 cornersCenter = (cornerOneV3 + cornerTwoV3) / 2;
-        Vector3 camToCornersCenter = cornersCenter - Camera.main.transform.position;
-        Vector3 boxCenter = transform.position + camToCornersCenter / 2;
-
-        Debug.DrawLine(Vector3.zero, cornerOneV3, Color.black, 2);
-        Debug.DrawLine(Vector3.zero, cornerTwoV3, Color.black, 2);
-
-        Vector3 cornerToCorner = cornerOneV3 - cornerTwoV3;
-        float boxX = Mathf.Abs(Vector3.Dot(cornerToCorner, transform.right));
-        float boxY = Mathf.Abs(Vector3.Dot(cornerToCorner, transform.up));
-
-        Vector3 boxExtents = new Vector3(boxX, boxY, toPlanet.magnitude) / 2;
-        Quaternion boxRot = Quaternion.LookRotation(toPlanet, Camera.main.transform.up);
-
-        int numAudio = 0;
-        foreach (Collider col in Physics.OverlapBox(boxCenter, boxExtents, boxRot)) {
-            Pawn pawn = col.GetComponent<Pawn>();
-            if (pawn == null || pawn.owner != player) {
-                continue;
-            }
-            selectedPawns.Add(pawn);
-            pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
-            if (numAudio++ < 3) {
-                pawn.PlayAudio(selectedClip);
-            }
-        }
-    }
 
     private void SelectUnitsV2(Vector2 cornerOne, Vector2 cornerTwo) {
         Pawn[] allPawns = FindObjectsOfType<Pawn>(); // TODO: Maintain this list somewhere
@@ -127,7 +94,7 @@ public class InputManager : MonoBehaviour {
                 if (Physics.Raycast(transform.position, pawn.transform.position - transform.position, out hit, Mathf.Infinity, pawnsAndPlanet)) {
                     if (hit.collider.GetComponent<Pawn>() != null) {
                         newPawns.Add(pawn);
-                        pawn.SetColor(Color.magenta, gameManager); // Temp hack? :)
+                            pawn.SetMaterial(gameManager.GetHighlightedMaterial());
                         if (numAudio++ < 3) {
                             pawn.PlayAudio(selectedClip);
                         }
@@ -138,7 +105,7 @@ public class InputManager : MonoBehaviour {
 
         foreach (Pawn pawn in selectedPawns) {
             if (pawn != null && !newPawns.Contains(pawn)) {
-                pawn.SetColor(PlayerMethods.GetPlayerColor(pawn.owner), gameManager);
+                pawn.SetMaterial(gameManager.GetPlayerSharedMat(pawn.owner));
             }
         }
         selectedPawns = newPawns;

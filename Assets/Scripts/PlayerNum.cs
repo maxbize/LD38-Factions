@@ -22,26 +22,4 @@ public static class PlayerMethods
     public static LayerMask allButP3 = p1Bit | p2Bit | p4Bit;
     public static LayerMask allButP4 = p1Bit | p2Bit | p3Bit;
     public static LayerMask allP = p1Bit | p2Bit | p3Bit | p4Bit;
-
-    public static Color GetPlayerColor(PlayerNum playerNum) {
-        if (playerNum == PlayerNum.One) {
-            return FromHex(0xB71C1C);
-        } else if (playerNum == PlayerNum.Two) {
-            return FromHex(0x0D47A1);
-        } else if (playerNum == PlayerNum.Three) {
-            return FromHex(0x1B5E20);
-        } else if (playerNum == PlayerNum.Four) {
-            return FromHex(0xF57F17);
-        } else {
-            return FromHex(0xFAFAFA);
-        }
-    }
-
-    private static Color FromHex(int hex) {
-        return new Color(
-            ((hex & 0xFF0000) >> 16) / (float)0xFF,
-            ((hex & 0x00FF00) >> 8) / (float)0xFF,
-            ((hex & 0x0000FF) >> 0) / (float)0xFF
-            );
-    }
 }

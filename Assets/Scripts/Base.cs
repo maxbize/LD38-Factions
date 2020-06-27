@@ -102,10 +102,10 @@ public class Base : MonoBehaviour {
             capturingTime = 0;
             spawningTime = 0;
             ParticleSystem capturePS = Instantiate(capturePSPrefab, transform.position, Quaternion.LookRotation(transform.up)).GetComponent<ParticleSystem>();
-            capturePS.startColor = PlayerMethods.GetPlayerColor(owningPlayer);
+            capturePS.startColor = gameManager.GetPlayerColor(owningPlayer);
         }
 
-        Debug.DrawRay(transform.position - transform.forward * height, -transform.forward * (capturingTime / captureTime) * 3, PlayerMethods.GetPlayerColor(capturingPlayer));
+        Debug.DrawRay(transform.position - transform.forward * height, -transform.forward * (capturingTime / captureTime) * 3, gameManager.GetPlayerColor(capturingPlayer));
         Debug.DrawRay(transform.position - transform.forward * height + transform.up * 0.1f, -transform.forward * 3, Color.black);
     }
 
@@ -133,7 +133,7 @@ public class Base : MonoBehaviour {
         Renderer renderer = GetComponent<Renderer>();
         renderer.sharedMaterial = mat; // Since we call this from the editor this stops us from creating instances of instances of instances.... of the material
         if (gameManager == null) {
-            renderer.material.color = PlayerMethods.GetPlayerColor(owningPlayer);
+            renderer.material.color = gameManager.GetPlayerColor(owningPlayer);
         } else {
             renderer.material = gameManager.GetPlayerSharedMat(owningPlayer);
         }
