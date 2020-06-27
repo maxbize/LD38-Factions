@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -34,9 +35,12 @@ public class InputManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         if (gameManager.gameState != GameManager.GameState.InGamePlaying) {
-            selectedPawns.Clear();
             UpdateSelector(Vector2.zero, Vector2.zero);
             return;
+        }
+
+        if (selectedPawns.All(p => p == null)) {
+            selectedPawns.Clear();
         }
 
         if (Input.GetMouseButtonDown(LEFT_CLICK)) {
